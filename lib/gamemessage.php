@@ -95,11 +95,11 @@ class libGameMessage
 
 		if ($toCountryID == 0) {
 			foreach($Game->Members->ByCountryID as $countryID => $member) {
-				libPusher::trigger($channel . $countryID, 'message', 'messageSent');
+				libRedis::trigger($channel . $countryID, 'message', 'messageSent');
 			}
 		} else {
 			$channel = $channel . $toCountryID;
-			libPusher::trigger($channel, 'message', 'messageSent');
+			libRedis::trigger($channel, 'message', 'messageSent');
 		}
 
 		return $timeSent;

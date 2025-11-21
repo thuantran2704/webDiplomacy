@@ -476,64 +476,6 @@ class Config
 		return false;	
 	}
 
-	// ---
-	// --- The following settings are for WebSockets using Pusher or Soketi
-	// --- https://docs.soketi.app/getting-started/backend-configuration/pusher-sdk
-	// --- Note that the client-side pusher config needs to be in sync with this
-	// --- config; see beta-src/.env.production
-	// ---
-
-	/**
-	 * The default app id for the pusher/soketi array driver.
-	 *
-	 * @var string
-	 */
-	public static $pusherAppKey = 'app-key';
-
-	/**
-	 * The default app key for the pusher/soketi array driver.
-	 *
-	 * @var string
-	 */
-	public static $pusherAppSecret = 'app-secret';
-
-	/**
-	 * The default app secret for the pusher/soketi array driver.
-	 *
-	 * @var string
-	 */
-	public static $pusherAppId = 'app-id';
-
-	/**
-	 * The default host for the pusher/soketi array driver.
-	 * By default it's the defined name of the docker 
-	 * container defined in docker-compose.yml
-	 *
-	 * @var string
-	 */
-	public static $pusherHost = 'webdiplomacy-websocket';
-
-	/**
-	 * The default port for the pusher/soketi array driver.
-	 *
-	 * @var int
-	 */
-	public static $pusherPort = 6001;
-
-	/**
-	 * The scheme to use for pusher
-	 *
-	 * @var int
-	 */
-	public static $pusherScheme = 'http';
-
-	/**
-	 * Force pusher to use TLS
-	 *
-	 * @var int
-	 */
-	public static $pusherForceTLS = false;
-
 	/**
 	 * If set to true bots are allowed to get messages directly from the unredacted messages table, for use
 	 * with testing bots in a development environment without needing a separate redaction process running.

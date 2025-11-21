@@ -20,18 +20,14 @@
 
 defined('IN_CODE') or die('This script can not be run by itself.');
 
-//require_once('vendor/autoload.php');
-
-//use Pusher\Pusher;
-
 require_once('objects/redis.php');
 
 /**
- * An class that handles Pusher config and methods; just redirects to Redis. libPushed will be phased out.
+ * An class that handles Redis config and methods.
  *
  * @package Base
  */
-class libPusher
+class libRedis
 {
   // If Redis is available use that instead, and the messages will be forwarded to a node.js SSE server
   private static ?RedisInterface $redis = null;

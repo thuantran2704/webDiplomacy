@@ -72,7 +72,7 @@ The system uses MySQL with a comprehensive schema including:
 ### Real-time Features
 - **SSE**: Server-sent events for live game updates
 - **Chat**: Game-specific and global chat systems
-- **Push Notifications**: Via Pusher integration (legacy) or SSE
+- **Push Notifications**: Via SSE
 
 ## Testing
 

@@ -265,6 +265,7 @@ class OrderInterface
 				$Member->orderStatus = $this->orderStatus;
 
 			// If in sandbox mode and setting the moves to ready set all other members to ready too
+			// Set orderStatusChanged to now, which will trigger the gamemaster to check if the game is ready to be processed.
 			$DB->sql_put("UPDATE wD_Members SET orderStatus = '".$this->orderStatus."', orderStatusChanged=UNIX_TIMESTAMP() WHERE ".
 				($this->isSandboxMode && $this->orderStatus->Ready ? "gameID = ".$this->gameID : "id = ".$this->memberID));
 
@@ -330,18 +331,6 @@ class OrderInterface
 		if( isset(Config::$sseSecret) )
 		{
 			libHTML::$footerScript[] = "configureSSE(".
-				$this->gameID.",".
-				$this->countryID.
-			");";
-		}
-		else if ( isset(Config::$pusherAppKey) && Config::$pusherAppKey )
-		{
-			//(appKey, host, wsPort, wssPort, gameID, countryID)
-			libHTML::$footerScript[] = "configurePusher('".
-				Config::$pusherAppKey."','".
-				Config::$pusherHost."',".
-				Config::$pusherPort.",".
-				Config::$pusherPort.",".
 				$this->gameID.",".
 				$this->countryID.
 			");";

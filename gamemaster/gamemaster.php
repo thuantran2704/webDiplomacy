@@ -445,39 +445,28 @@ class libGameMaster
 	}
 
 	// Finds and processes all games where all playing members excluding bots have voted for something
-	// A gameID can be given because the setVote function expects a game with a vote set to be processed
-	// immidiately and it changing it might break the beta UI. 
-	// TODO: Test whether votes need to be processed immidiately via api.php or if they can wait for gamemaster to run
-	static public function findAndApplyGameVotes($gameID = -1)
+	static public function findAndApplyGameVotes()
 	{
 		global $DB, $Misc;
 
-		if( $gameID == -1 )
+		// Look up all gameID where votesChanged is greater than the last wD_Misc LastVotesCounted,
+		// as counting votes for all games is slow and not needed if no votes have changed
+
+		$lastVotesCounted = $Misc->LastVotesCounted;
+		$Misc->LastVotesCounted = time();
+
+		$tabl = $DB->sql_tabl("SELECT DISTINCT gameID FROM wD_Members WHERE votesChanged >= " . $lastVotesCounted);
+		$gameIDs = array();
+		while(list($gameID) = $DB->tabl_row($tabl))
 		{
-			// Look up all gameID where votesChanged is greater than the last wD_Misc LastVotesCounted,
-			// as counting votes for all games is slow and not needed if no votes have changed
-
-			$lastVotesCounted = $Misc->LastVotesCounted;
-			$Misc->LastVotesCounted = time();
-
-			$tabl = $DB->sql_tabl("SELECT DISTINCT gameID FROM wD_Members WHERE votesChanged >= " . $lastVotesCounted);
-			$gameIDs = array();
-			while(list($gameID) = $DB->tabl_row($tabl))
-			{
-				$gameIDs[] = $gameID;
-			}
-
-			if( count($gameIDs) == 0 ) return;
-
-			$Misc->write();
-			$DB->sql_put("COMMIT");
-
-			$gameIDs = implode(',', $gameIDs);
+			$gameIDs[] = $gameID;
 		}
-		else
-		{
-			$gameIDs = $gameID;
-		}
+		if( count($gameIDs) == 0 ) return;
+
+		$Misc->write();
+		$DB->sql_put("COMMIT");
+
+		$gameIDs = implode(',', $gameIDs);
 		
 
 		$tabl = $DB->sql_tabl("SELECT g.variantID, g.id, 
@@ -533,8 +522,8 @@ class libGameMaster
 	{
 		global $DB, $Misc;
 
-		// Look up all gameID where votesChanged is greater than the last wD_Misc LastVotesCounted,
-		// as counting votes for all games is slow and not needed if no votes have changed
+		// Look up all gameID where orderStatusChanged is greater than the last wD_Misc LastOrderStatusCounted,
+		// as counting votes for all games is slow and not needed if no votes have changed:
 		$lastOrderStatusCounted = $Misc->LastOrderStatusCounted;
 		$Misc->LastOrderStatusCounted = time();
 		$tabl = $DB->sql_tabl("SELECT DISTINCT gameID FROM wD_Members WHERE orderStatusChanged >= " . $lastOrderStatusCounted);

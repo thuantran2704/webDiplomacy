@@ -40,7 +40,6 @@ $apiEndpoints = array(
 	'GAME_ORDERS',
 	'GAME_TOGGLEVOTE',
 	'GAME_SETVOTE',
-	'WEBSOCKETS_AUTHENTICATION',
 	'SSE_AUTHENTICATION',
 	'GAME_SENDMESSAGE',
 	'GAME_GETMESSAGES',
@@ -74,10 +73,6 @@ if( $User->type['Admin'] && isset($_GET['clearAPIMetrics']) )
 {
 	try {
 		if (class_exists('Redis')) {
-			require_once(l_r('objects/redis.php'));
-			$Redis = new RedisInterface(Config::$redisHost, Config::$redisPort);
-
-
 			$clearedCount = 0;
 
 			// Clear API metrics
@@ -306,10 +301,6 @@ if( $User->type['Admin'] )
 		print '<p class="notice">'.l_t('Redis PHP extension is not installed. API metrics collection requires Redis.').'</p>';
 	} else {
 		try {
-			// Try to connect to Redis
-			require_once(l_r('objects/redis.php'));
-			$Redis = new RedisInterface(Config::$redisHost, Config::$redisPort);
-
 			// Fetch all API metric keys
 			$metrics = array();
 			$allKeys = array();

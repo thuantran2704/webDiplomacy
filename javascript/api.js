@@ -157,7 +157,7 @@ var configureSSE = function(gameID, countryID) {
                     // If data.message contains "message":
                     if (data.message && data.message.includes("message")) {
                         console.log(`New game message received`);
-                        var messageSentArea = document.getElementById('websocketsMessageSent');
+                        var messageSentArea = document.getElementById('sseMessageSent');
                         if( messageSentArea )
                         {
                             messageSentArea.innerHTML = "New message received: <a href='board.php?gameID="+gameID+"&monitorUpdated="+Math.round(10000.0*Math.random())+"#monitorUpdated'>Click here</a> to refresh the board.";
@@ -167,7 +167,7 @@ var configureSSE = function(gameID, countryID) {
                     } else if (data.message && data.message.includes("processed")) {
                         console.log(`Game processed`);
 
-                        var gameProcessedArea = document.getElementById('websocketsGameProcessed');
+                        var gameProcessedArea = document.getElementById('sseGameProcessed');
                         if( gameProcessedArea )
                         {
                             gameProcessedArea.innerHTML = "Game has been processed: <a href='board.php?gameID="+gameID+"&monitorUpdated="+Math.round(10000.0*Math.random())+"#monitorUpdated'>Click here</a> to refresh the board.";

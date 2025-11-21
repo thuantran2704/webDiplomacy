@@ -28,23 +28,8 @@ require_once('header.php');
 
 // Override the Database with MetricsDatabase for AJAX metrics collection
 require_once('objects/database_metrics.php');
-require_once('objects/redis.php');
 
-global $DB, $Redis;
-
-// Initialize Redis for AJAX metrics
-$Redis = null;
-if (Config::$redisHost && Config::$redisPort) {
-	try {
-		// Only try to use Redis if the extension is installed
-		if (class_exists('Redis')) {
-			$Redis = new RedisInterface(Config::$redisHost, Config::$redisPort);
-		}
-	} catch (Exception $e) {
-		// If Redis connection fails, continue without metrics
-		$Redis = null;
-	}
-}
+global $DB;
 
 // Replace the Database with MetricsDatabase for AJAX calls to track performance
 $DB = new MetricsDatabase();

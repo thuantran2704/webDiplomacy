@@ -10,7 +10,6 @@ enum ApiRoute {
   MESSAGES_SEEN = "game/messagesseen",
   GAME_SETVOTE = "game/setvote",
   SET_BACK_FROM_LEFT = "game/markbackfromleft",
-  WEBSOCKETS_AUTHENTICATION = "websockets/authentication",
   SSE_AUTHENTICATION = "sse/authentication",
   // get sandbox
   SANDBOX_COPY = "sandbox/copy",

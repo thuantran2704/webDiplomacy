@@ -1,9 +1,9 @@
 // Simple node.js server that will serve an SSE feed of channel event messages 
 // to clients, published to the Redis server from PHP as games are processed, 
 // votes cast, and messages sent.
+
 // Pusher / Durable Objects / Workers / etc was inefficient and expensive for 
 // a simple client notification requirement.
-
 // Web-sockets allows clients to talk back to the server, and allows for other
 // use cases, however for basic server->client notifications it is overly complex
 // and the solutions are expensive and complex. SSE is simply an HTTP connection

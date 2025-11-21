@@ -102,12 +102,6 @@ const WDUI: FunctionComponent<WDUIProps> = function ({
     viewedYear = gameYear;
   }
 
-  // Un-comment this when WebSockets is fully implemented
-  // const [showLoading, setShowLoading] = useState<boolean>(false);
-  // const allReady = allCountries.every(
-  //   (country: any) => country.orderStatus.Completed,
-  // );
-
   return (
     <>
       <TopLeft

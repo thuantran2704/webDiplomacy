@@ -891,7 +891,10 @@ class processGame extends Game
 		}
 		
 		/*
-		 * Update the orderStatus of each member.
+		 * Update the orderStatus of each member to None if they have no orders.
+		 * 
+		 * Set the orderStatusChanged to now, triggering a check for whether everyone is ready, so 
+		 * that if no-one has any orders to submit this phase the game will be processed immidiately.
 		 */
 		$DB->sql_put("UPDATE wD_Members m
 				LEFT JOIN wD_Orders o ON ( o.gameID = m.gameID AND o.countryID = m.countryID )
