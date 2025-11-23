@@ -151,7 +151,7 @@ elseif( isset($_REQUEST['context']) && isset($_REQUEST['contextKey']) && isset($
 			$Game = libVariant::$Variant->Game($O->gameID);//, UPDATE); // No need to lock game for update to check whether it needs a process
 			if( $Game->needsProcess() )
 			{
-				$MC->append('processHint',','.$O->gameID);
+				$Redis->append('processHint',','.$O->gameID);
 			}
 		}
 	}

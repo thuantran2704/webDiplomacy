@@ -113,28 +113,28 @@ if($User->type['User'] )
 }
 else
 {
-	if( ($GamesOpen = $MC->get('GamesOpen')) === false )
+	if( ($GamesOpen = $Redis->get('GamesOpen')) === false )
 	{
 		list($GamesOpen) = $DB->sql_row("SELECT COUNT(1) FROM wD_Games WHERE minimumBet IS NOT NULL AND password IS NULL AND gameOver = 'No'
 			AND phase <> 'Pre-game' AND phase <> 'Finished' AND playerTypes <> 'MemberVsBots' ");
-		$MC->set('GamesOpen', $GamesOpen, 600);
+		$Redis->set('GamesOpen', $GamesOpen, 600);
 	}
 }
 
-if( ($GamesNew = $MC->get('GamesNew')) === false )
+if( ($GamesNew = $Redis->get('GamesNew')) === false )
 {
 	list($GamesNew) = $DB->sql_row("SELECT COUNT(1) FROM wD_Games WHERE phase = 'Pre-game' AND playerTypes <> 'MemberVsBots'");
-	$MC->set('GamesNew', $GamesNew, 600);
+	$Redis->set('GamesNew', $GamesNew, 600);
 }
-if( ($GamesActive = $MC->get('GamesActive')) === false )
+if( ($GamesActive = $Redis->get('GamesActive')) === false )
 {
 	list($GamesActive) = $DB->sql_row("SELECT COUNT(1) FROM wD_Games WHERE phase <> 'Pre-game' AND phase <> 'Finished' AND playerTypes <> 'MemberVsBots'");
-	$MC->set('GamesActive', $GamesActive, 600);
+	$Redis->set('GamesActive', $GamesActive, 600);
 }
-if( ($GamesFinished = $MC->get('GamesFinished')) === false )
+if( ($GamesFinished = $Redis->get('GamesFinished')) === false )
 {
 	list($GamesFinished) = $DB->sql_row("SELECT COUNT(1) FROM wD_Games WHERE phase = 'Finished' AND playerTypes <> 'MemberVsBots'");
-	$MC->set('GamesFinished', $GamesFinished, 600);
+	$Redis->set('GamesFinished', $GamesFinished, 600);
 }
 
 

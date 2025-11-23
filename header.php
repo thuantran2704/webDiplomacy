@@ -55,8 +55,6 @@ if( strlen(Config::$serverMessages['ServerOffline']) )
 	die('<html><head><title>Server offline</title></head>'.
 		'<body>'.Config::$serverMessages['ServerOffline'].'</body></html>');
 
-require_once('objects/memcached.php');
-
 if( ini_get('request_order') !== false ) {
 
 	// There is a request_order php.ini variable; this must be PHP 5.3.0+
@@ -170,25 +168,13 @@ require_once(l_r('global/error.php'));
 date_default_timezone_set('UTC');
 
 // Create database object
-require_once(l_r('objects/database.php'));
 require_once(l_r('objects/database_metrics.php'));
 require_once(l_r('objects/redis.php'));
 
 global $DB, $Redis;
 
-// Initialize Redis for page metrics (if available)
-$Redis = null;
-if (Config::$redisHost && Config::$redisPort) {
-	try {
-		// Only try to use Redis if the extension is installed
-		if (class_exists('Redis')) {
-			$Redis = new RedisInterface(Config::$redisHost, Config::$redisPort);
-		}
-	} catch (Exception $e) {
-		// If Redis connection fails, continue without metrics
-		$Redis = null;
-	}
-}
+// Initialize Redis
+$Redis = new RedisInterface(Config::$redisHost, Config::$redisPort);
 
 // Use MetricsDatabase for page metrics tracking
 $DB = new MetricsDatabase();

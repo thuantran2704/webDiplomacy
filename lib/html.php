@@ -951,7 +951,7 @@ class libHTML
 		$links['botgamecreate.php']=array('name'=>'New Bot Game', 'inmenu'=>TRUE, 'title'=>"Start up a new bot game");
 		$links['gamecreateSandbox.php']=array('name'=>'New Sandbox Game', 'inmenu'=>TRUE, 'title'=>"Start up a new sandbox game");
 		$links['group.php']=array('name'=>'Relationships', 'inmenu'=>FALSE);
-
+		$links['status.php']=array('name'=>'Status', 'inmenu'=>false, 'title'=>"webDiplomacy.net status page");
 
 		if ( is_object($User) )
 		{
@@ -1062,6 +1062,7 @@ class libHTML
 								<a href="variants.php" title="Active webDiplomacy variants">Variants</a>
 								<a href="help.php" title="Site information, guides, stats, links">More Info</a>
 								<a href="donations.php">Donate</a>
+								<a href="status.php">System Status</a>
 							</div>
 						</div>';
 					}
@@ -1091,8 +1092,8 @@ class libHTML
 							$menu.='
 								<a href="usercp.php" title="Change your user specific settings">Settings</a>
 								<a href="group.php" title="Manage your user relationships">Relationships</a>
-								<a href="useridentity.php" title="Verify your identity">Identity</a>
-								<a href="usernotifications.php" title="Manage site notifications">Notifications</a>
+								<!--<a href="useridentity.php" title="Verify your identity">Identity</a>
+								<a href="usernotifications.php" title="Manage site notifications">Notifications</a>-->
 							</div>
 						</div>
 						<div id="navSubMenu" class = "clickable nav-tab">Help ▼
@@ -1105,6 +1106,7 @@ class libHTML
 								<a href="help.php" title="Site information; guides, stats, links">More Info</a>
 								<a href="modforum.php">Get Help</a>
 								<a href="donations.php">Donate</a>
+								<a href="status.php">System Status</a>
 							</div>
 						</div>';
 					}

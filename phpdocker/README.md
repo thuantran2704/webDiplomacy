@@ -42,7 +42,6 @@ Service|Hostname|Port number
 ------|---------|-----------
 php-fpm|php-fpm|9000
 MariaDB|mariadb|3306 (default)
-Memcached|memcached|11211 (default)
 SMTP (Mailhog)|mailhog|1025 (default)
 
 # Docker compose cheatsheet #

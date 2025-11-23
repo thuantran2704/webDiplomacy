@@ -28,7 +28,8 @@ if( !isset($_REQUEST['variantID']) && ( !isset($_REQUEST['gameID']) || !isset($_
 define('IN_CODE', 1);
 
 require_once('config.php');
-require_once('objects/memcached.php');
+require_once('objects/redis.php');
+$Redis = new RedisInterface(Config::$redisHost, Config::$redisPort);
 
 if( isset($_REQUEST['DATC'])||isset($_REQUEST['nocache'])||isset($_REQUEST['uncache'])||isset($_REQUEST['profile']) )
 	define('IGNORECACHE',1);
@@ -40,8 +41,7 @@ if( isset($_REQUEST['uncache'])||isset($_REQUEST['profile']) )
 else
 	define('DELETECACHE',0);
 
-// This game was recently processed so suppress cacheing in case we save only half the units etc
-if( isset($_REQUEST['gameID']) && $MC->get('processing'.((int)$_REQUEST['gameID'])) !== false )
+if( isset($_REQUEST['gameID']) && $Redis->get('processing'.((int)$_REQUEST['gameID']) ) ) // This used to be set if there was a process flag set, if the game was about to be / had just been processed. This shouldn't be necessary. TODO: Factor out
 	define('DONOTCACHE',1);
 else
 	define('DONOTCACHE',0);

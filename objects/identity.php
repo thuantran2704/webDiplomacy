@@ -288,6 +288,7 @@ REQUESTLOCATION;
         }
         return $formOutput;
     }
+    /*
     private static $openIDUserInfo = null;
     private static function getAndSaveOpenIDUserInfo()
     {
@@ -329,6 +330,7 @@ REQUESTLOCATION;
             }
         }
     }
+        */
     public static function panel($PanelUser)
     {
         global $User;

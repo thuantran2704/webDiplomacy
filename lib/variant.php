@@ -174,14 +174,14 @@ class libVariant {
 	 * @return unknown_type
 	 */
 	public static function loadFromGameID($gameID) {
-		global $DB, $MC;
+		global $DB, $Redis;
 
 		if( !isset(self::$variantIDsByGameID[$gameID]) )
 		{
 			$gameID=(int)$gameID;
 
 			// Check whether the variant value is cached outside of the database:
-			$variantID = (int)$MC->get('variantIDOfGameID'.$gameID);
+			$variantID = (int)$Redis->get('variantIDOfGameID'.$gameID);
 			if( !$variantID )
 			{
 				list($variantID) = $DB->sql_row("SELECT variantID FROM wD_Games WHERE id=".$gameID);
@@ -191,7 +191,7 @@ class libVariant {
 					libHTML::error(l_t("Game not found, or has an invalid variant set; ensure a valid game ID has been given. Check that this game hasn't been canceled, you may have received a message about it on your <a href='index.php' class='light'>home page</a>."));
 				}
 
-				$MC->set('variantIDOfGameID'.$gameID, $variantID); // Save the variant to avoid unnecessary queries if possible
+				$Redis->set('variantIDOfGameID'.$gameID, $variantID); // Save the variant to avoid unnecessary queries if possible
 			}
 
 			self::$variantIDsByGameID[$gameID]=$variantID;;

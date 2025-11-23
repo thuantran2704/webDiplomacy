@@ -79,11 +79,11 @@ class miscUpdate
 	{
 		global $DB, $Misc;
 
-		list($Misc->GamesNew) = $DB->sql_row("SELECT COUNT(phase) FROM wD_Games WHERE phase = 'Pre-game'");
-		list($Misc->GamesActive) = $DB->sql_row("SELECT COUNT(phase) FROM wD_Games WHERE phase IN ('Diplomacy', 'Retreats', 'Builds')");
-		list($Misc->GamesFinished) = $DB->sql_row("SELECT COUNT(phase) FROM wD_Games WHERE phase = 'Finished'");
-		list($Misc->GamesCrashed) = $DB->sql_row("SELECT COUNT(processStatus) FROM wD_Games WHERE processStatus = 'Crashed'");
-		list($Misc->GamesPaused) = $DB->sql_row("SELECT COUNT(processStatus) FROM wD_Games WHERE processStatus = 'Paused'");
+		list($Misc->GamesNew) = $DB->sql_row("SELECT COUNT(1) FROM wD_Games WHERE phase = 'Pre-game'");
+		list($Misc->GamesActive) = $DB->sql_row("SELECT COUNT(1) FROM wD_Games WHERE phase IN ('Diplomacy', 'Retreats', 'Builds') AND NOT playerTypes = 'MemberVsBots'");
+		list($Misc->GamesFinished) = $DB->sql_row("SELECT COUNT(1) FROM wD_Games WHERE phase = 'Finished'");
+		list($Misc->GamesCrashed) = $DB->sql_row("SELECT COUNT(1) FROM wD_Games WHERE processStatus = 'Crashed'");
+		list($Misc->GamesPaused) = $DB->sql_row("SELECT COUNT(1) FROM wD_Games WHERE processStatus = 'Paused'");
 		list($Misc->GamesOpen) = $DB->sql_row("SELECT COUNT(1) FROM wD_Games g WHERE g.minimumBet is not null and g.password is null and g.gameOver = 'No' and g.phase <> 'Pre-game'");
 
 		if( $Misc->GamesActive >= 16 )
@@ -133,6 +133,32 @@ class miscUpdate
 		list($Misc->OnlinePlayers) = $DB->sql_row("SELECT COUNT(userID) FROM wD_Sessions");
 
 		list($Misc->ActivePlayers) = $DB->sql_row("SELECT COUNT(DISTINCT userID) FROM wD_Members WHERE status='Playing'");
+	}
+	/**
+	 * Update bot and sandbox game counts
+	 */
+	static public function bots()
+	{
+		global $DB,$Misc;
+
+		// TODO: The SB_ method of identifying sandbox games is not ideal.
+		list($Misc->BotGamesActiveNoPress_Anonymous, $Misc->BotGamesActiveNoPress, $Misc->BotGamesActiveFullPress, $Misc->SandboxGamesActive) = $DB->sql_row(
+			"SELECT 
+				SUM(IF(NOT g.name LIKE 'SB_%' AND bq.gameID IS NULL AND u.username LIKE 'diplonow_%',1,0)) NoPressAnon, 
+				SUM(IF(NOT g.name LIKE 'SB_%' AND bq.gameID IS NULL AND u.username LIKE 'diplonow_%',0,1)) NoPressUser,
+				SUM(IF(NOT g.name LIKE 'SB_%' AND bq.gameID IS NOT NULL,1,0)) FullPress,
+				SUM(IF(g.name LIKE 'SB_%',1,0)) Sandbox
+			FROM wD_Games g 
+			INNER JOIN wD_Members m ON m.gameID = g.id 
+			INNER JOIN wD_Users u ON u.id = m.userID 
+			LEFT JOIN wD_BotGameQueue bq ON bq.gameID = g.id 
+			WHERE NOT u.type LIKE '%Bot%' 
+				AND g.gameOver = 'No' 
+				AND g.playerTypes = 'MemberVsBots' 
+			GROUP BY g.id, u.username"
+		);
+
+		// SELECT COUNT(DISTINCT g.id) FROM wD_Games g INNER JOIN wD_Members m ON m.gameID = g.id INNER JOIN wD_Users u ON u.id = m.userID WHERE NOT u.type LIKE '%Bot%' AND g.gameOver = 'No' AND g.playerTypes = 'MemberVsBots' AND NOT u.username LIKE 'diplonow_%' AND NOT g.name LIKE 'SB_%'
 	}
 }
 ?>

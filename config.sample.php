@@ -103,6 +103,16 @@ class Config
 	public static $jsonSecret='';
 
 	/**
+	 * Secret that is used to generate tokens that say a user is allowed to get SSE events relating to a country.
+	 * 
+	 * The potential for abuse is low, you could only find out that a player has just received a message but
+	 * not from who or the content. Tokens are invalid after 1 day. Needs to be in sync with the value in the 
+	 * sse-server config file.
+	 * @var string
+	 */
+	public static $sseSecret = '';
+
+	/**
 	 * The administrators e-mail; if a user experiences a problem they will be invited to contact this
 	 * e-mail address. It's unlikely bots will experience the sort of problem resulting in your e-mail
 	 * being displayed, but if your e-mail provider doesn't filter spam well you may want to be careful.
@@ -118,20 +128,6 @@ class Config
 	 * @var string
 	 */
 	public static $modEMail='moderators@yourdiplomacyserver.com';
-
-	/**
-	 * Memcached hostname
-	 *
-	 * @var string
-	 */
-	public static $memcachedHost='webdiplomacy-memcached';
-
-	/**
-	 * Memcached port number
-	 *
-	 * @var int
-	 */
-	public static $memcachedPort=11211;
 
 	/**
 	 * An array of variants available on the server (for future releases, not yet enabled)
@@ -428,16 +424,6 @@ class Config
 	 */
 	//public static $customForumURL='/contrib/phpBB3/';
 
-    /**
-    * Settings needed for auth0 to function
-    public static $auth0conf = array(
-		'domain' => '',
-		'client_id' => '',
-		'client_secret' => '',
-		'redirect_url' => '',
-	);
-    */
-	
 	// ---
 	// --- From here on down the default settings will probably be fine.
 	// ---
@@ -481,15 +467,6 @@ class Config
 	 * with testing bots in a development environment without needing a separate redaction process running.
 	 */
 	public static $allowBotsAccessToUnredactedMessages = true;
-
-	/**
-	 * Secret that is used to generate tokens that say a user is allowed to get events relating to a country.
-	 * The potential for abuse is low, you could only find out that a player has just received a message but
-	 * not from who or the content. Tokens are invalid after 1 day. Needs to be in sync with the value in the 
-	 * sse-server config file.
-	 * @var string
-	 */
-	public static $sseSecret = null;
 
 	/**
 	 * The Redis host and port. This replaces Memcached and Pusher, as Redis can do what Memcached can, and

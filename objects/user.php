@@ -174,7 +174,7 @@ class User {
 	public $online;
 
 	/**
-	 * Replaced with getOptions() which includes memcache caching and ensures options are only fetched when needed (e.g. they
+	 * Replaced with getOptions() which includes caching and ensures options are only fetched when needed (e.g. they
 	 * are needed for the user viewing the page, but not for user objects loaded for other users)
 	 * The user's options
 	 * @var UserOptions

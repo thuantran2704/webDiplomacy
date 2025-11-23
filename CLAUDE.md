@@ -91,7 +91,7 @@ The system uses MySQL with a comprehensive schema including:
 - Database connection settings
 - Security secrets (salt, jsonSecret, gameMasterSecret)
 - Email configuration
-- Cache settings (Memcached/Redis)
+- Cache settings (Redis)
 - Debug mode settings
 
 ### Environment-specific

@@ -7,27 +7,32 @@ HOME=/application
 
 cd $HOME
 
+echo "Started gamemaster-entrypoint.sh"
+
+echo "Script will output READY once completed"
+
 if [ ! -d vendor ]; then
   echo "ERROR: vendor directory not found; please run composer update in the source directory"
   
 else
 
-  echo "Erase old cache data"
+  echo "Erasing old cache data"
   rm -rf cache/*
 
-  echo "Make sure all cache folders writable"
+  echo "Making sure all cache folders writable"
   # Make sure the cache and datc folders are writable, this is v slow in hyper-v docker with a large cache, so first clear the cache
   find . -name "cache" -exec chmod a+rwx {} \;
   find . -name "datc" -exec chmod a+rwx {} \;
   find . -name "variants" -exec chmod a+rwx {} \;
 
-  echo "Make sure config present"
+  echo "Making sure config present"
   # If no config has been set up use the sample, which is compatible with docker
   if [ ! -f config.php ]; then
+    echo "Copying sample config to config.php"
     cp config.sample.php config.php
   fi
 
-  echo "Start PHP server"
+  echo "Starting PHP server"
   # Fork the FPM server
   /usr/sbin/php-fpm8.4 -O &
 
@@ -51,11 +56,14 @@ else
     echo "Make sure all variant cache folders exist"
     ls variants/*/variant.php | sed -e 's/variant.php//' | (while read v; do mkdir "$v""cache"; done)
     
+    echo "Connecting to mysql to run install/FullInstall/fullInstall.sql"
     mysql -u webdiplomacy -h webdiplomacy-db -P 3306 --password=mypassword123 webdiplomacy < $HOME/install/FullInstall/fullInstall.sql
     mysqlResult=$?
     if [ $mysqlResult -ne 0 ]; then
       echo "mysql on fullInstall.sql returned $mysqlResult"
     fi
+
+    echo "Connecting to mysql to run install/createBotAccounts.sql"
     mysql -u webdiplomacy -h webdiplomacy-db -P 3306 --password=mypassword123 webdiplomacy < $HOME/install/createBotAccounts.sql
     mysqlResult=$?
     if [ $mysqlResult -ne 0 ]; then
@@ -64,14 +72,15 @@ else
     echo "DB created"
   fi
 
-  sleep 2
+  echo "Setting ownership of cache folders to www-data"
+  find . -name "cache" -exec chown -R www-data:www-data {} \;
 
-  echo "Start gamemaster"
+  echo "READY - webDiplomacy system initialized"
+
+  echo "Starting gamemaster"
   while true; do
-    find . -name "cache" -exec chown -R www-data:www-data {} \;
     gameMasterSecret='' QUERY_STRING='' wget -O - http://webserver/gamemaster.php?gameMasterSecret= > /dev/null 2>&1
-    #php -f $HOME/gamemaster.php
-    sleep 5
+    sleep 3
     echo -n "."
   done
 

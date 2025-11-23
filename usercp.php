@@ -38,21 +38,6 @@ if(!$User->type['User'])
 	libHTML::error(l_t("You can't use the user control panel, you're using a guest account."));
 }
 
-if( isset(Config::$auth0conf) )
-{
-	// Do login/logout before sending any other headers (though it does work anyway?)
-	require_once('contrib/auth0.php');
-
-	if( isset($_REQUEST['auth0Login']))
-	{
-		libOpenID::logIn();
-	}
-	else if( isset($_REQUEST['auth0Logout']) )
-	{
-		libOpenID::logOut();
-	}
-}
-
 libHTML::starthtml();
 
 if ( isset($_REQUEST['emailToken']))

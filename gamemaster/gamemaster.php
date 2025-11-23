@@ -518,7 +518,7 @@ class libGameMaster
 	}
 	// Finds all games where all users (incuding bots) with orders have set ready. It's similar to the function above
 	// but there are enough differences to make it messy to combine
-	static public function findGameReadyVotes()
+	static public function findGameOrdersReady()
 	{
 		global $DB, $Misc;
 
@@ -561,6 +561,32 @@ class libGameMaster
 			$readyGames[] = $gameID;
 		}
 		return $readyGames;
+	}
+
+	// Games where a new member has joined since we last checked, indicating the game may now be full and ready to start:
+	static public function findGamesWithRecentlyJoinedPlayers()
+	{
+		global $DB, $Misc;
+
+		// Find all newly joined members, as when a member joins this indicates we need to check if the game is ready to start
+		$lastMemberIDChecked = $Misc->LastMemberIDChecked;
+		$tabl = $DB->sql_tabl("SELECT id, gameID FROM wD_Members WHERE id > " . $lastMemberIDChecked ." ORDER BY id DESC LIMIT 100");
+
+		$gameIDs = array();
+		$maxMemberID = 0;
+		while(list($memberID, $gameID) = $DB->tabl_row($tabl))
+		{
+			if( $memberID > $maxMemberID ) $maxMemberID = $memberID;
+			$gameIDs[] = $gameID;
+		}
+		if( count($gameIDs) == 0 ) return array();
+		
+		$Misc->LastMemberIDChecked = $maxMemberID;
+		$Misc->write();
+
+		$gameIDs = array_unique($gameIDs, SORT_NUMERIC);
+
+		return $gameIDs;
 	}
 }
 

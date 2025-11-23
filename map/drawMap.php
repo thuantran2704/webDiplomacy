@@ -85,8 +85,8 @@ abstract class drawMap
 
 		$thumbnail['image'] = imagecreatetruecolor($thumbnail['width'], $thumbnail['height']);
 
-		imagecopyresampled($thumbnail['image'], $map['image'], 0, 0, $map['startX'], $map['startY'],
-			$thumbnail['width'], $thumbnail['height'], $map['width'], $map['height']);
+		imagecopyresampled($thumbnail['image'], $map['image'], 0, 0, (int)$map['startX'], (int)$map['startY'],
+			(int)$thumbnail['width'], (int)$thumbnail['height'], (int)$map['width'], $map['height']);
 
 		$this->addBorder($thumbnail);
 

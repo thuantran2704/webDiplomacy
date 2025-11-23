@@ -175,11 +175,25 @@ class adminActions extends adminActionsForms
 				'description' => 'Generate a password reset email link for a user having problems resetting their password. (Use with care of course.)',
 				'params' => array('email'=>'Registration Email'),
 			),
+			'resetRedisCache' => array(
+				'name' => 'Reset Redis Cache',
+				'description' => 'Reset the Redis cache to clear stored data. Use with caution.',
+				'params' => array(),
+			),
 		);
 
 	public function __construct()
 	{
 		global $Misc;
+	}
+
+	public function resetRedisCache(array $params)
+	{
+		global $Redis;
+
+		$Redis->flushDB();
+
+		return l_t("The Redis cache has been reset.");
 	}
 	
 	public function resetMinimumBet(array $params)

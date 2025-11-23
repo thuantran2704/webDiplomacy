@@ -34,7 +34,7 @@ defined('IN_CODE') or die('This script can not be run by itself.');
  * wD_UserConnections - For each user has a summary of the counts and matches for each code type
  * 
  * This data is aggregated and collected by running gamemaster.php from the commandline with the argument CONNECTIONUPDATE. 
- * It uses wD_Misc.LastConnectionUpdate to know what time it should start collecting new codes from (if 0 it will start from scratch),
+ * It uses wD_Misc.LastUserConnectionsUpdate to know what time it should start collecting new codes from (if 0 it will start from scratch),
  * and uses wD_Misc.LastMessageID to know what game message it should start collecting new message data from.
  * The script takes 10-20 minutes to run from scratch against a large webDiplomacy.net sized system, but every time it runs subsequently
  * it only processes new records and runs very quickly. The datasets generated can be searched and analyzed without locking any live 
@@ -405,9 +405,9 @@ ON DUPLICATE KEY UPDATE isUpdated=1, earliest=least(r.earliestM, earliest), late
 	{
 		$sql = "";
         // Codes to aggregate totals for
-		$codes = array('Cookie','IP','IPVPN','Fingerprint','FingerprintPro','LatLon','Network','City','UserTurn','UserTurnMissed','MessageLength','MessageCount');
+		$codes = array('Cookie','IP','IPVPN','Fingerprint','FingerprintPro','LatLon','Network','City','UserTurnMissed','MessageLength','MessageCount');
         // Codes to also look for matches for (matching all users who are in the same region / have played with the same user wouldn't be useful)
-        $matchCodes = array('Cookie','IP','Fingerprint','FingerprintPro','UserTurnMissed','UserTurn');
+        $matchCodes = array('Cookie','IP','Fingerprint','FingerprintPro','UserTurnMissed');
 		foreach($codes as $codeType)
 		{
 			$sql .= "

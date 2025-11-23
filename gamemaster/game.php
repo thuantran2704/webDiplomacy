@@ -229,7 +229,7 @@ class processGame extends Game
 				SELECT ".$cols." FROM wD_".$tableName." WHERE ".$idColName." = ".$gameID
 			);
 		}
-		$DB->sql_put("INSERT INTO wD_Backup_Log (gameID, turn, `timestamp`, isExported) VALUES (".$gameID.", 0, ".time().", 0)");
+		$DB->sql_put("INSERT INTO wD_Backup_Log (gameID, `timestamp`, isExported) VALUES (".$gameID.", ".time().", 0) ON DUPLICATE KEY UPDATE `timestamp` = ".time().", isExported = 0");
 
 		if ( $commitNow )
 			$DB->sql_put("COMMIT");
@@ -246,7 +246,7 @@ class processGame extends Game
 		{
 			$cols = implode(',',explode(';',self::$gameTableColumns[$tableName]));
 			$tabl = $DB->sql_tabl(
-				"SELECT ".$cols." FROM wD_".$tableName." WHERE ".$idColName." = ".$gameID
+				"SELECT ".$cols." FROM wD_Backup_".$tableName." WHERE ".$idColName." = ".$gameID
 			);
 			$backupDataset[$tableName] = array();
 			while($row = $DB->tabl_hash($tabl))

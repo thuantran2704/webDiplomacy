@@ -185,7 +185,7 @@ register folders are all not required to be accessible from the web, and so acce
 the web server should be restricted (e.g. by using a .htaccess file for Apache).
 
 
-Memcached is also required to use the system, and it should be firewalled off as it does not 
+Redis is also required to use the system, and it should be firewalled off as it does not 
 have authentication built in.
 
 

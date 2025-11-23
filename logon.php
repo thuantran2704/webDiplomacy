@@ -66,13 +66,13 @@ if( isset($_REQUEST['forgotPassword']) and $User->type['Guest'] )
 					"<a href='logon.php?forgotPassword=1' class='light'>go back</a> and check for typos."));
 			}
 
-			if( $MC->get('forgot_'.$forgottenUser->id) !== false )
+			if( $Redis->get('forgot_'.$forgottenUser->id) !== false )
 			{
 				throw new Exception(l_t("To help prevent abuse please wait 5 minutes before resending forgotten e-mail recovery links. ".
 					"In the meantime please check your spam folder for a missing recovery e-mail, or contact the moderator team."));
 			}
 			
-			$MC->set('forgot_'.$forgottenUser->id, 0, 5*60); // Set a flag preventing resends for 5 minutes
+			$Redis->set('forgot_'.$forgottenUser->id, 0, 5*60); // Set a flag preventing resends for 5 minutes
 
 			require_once(l_r('objects/mailer.php'));
 			$Mailer = new Mailer();

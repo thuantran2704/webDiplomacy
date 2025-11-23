@@ -139,7 +139,7 @@ try
 
 			if( $Game->needsProcess() )
 			{
-				$MC->append('processHint',','.$Game->id);
+				$Redis->append('processHint',','.$Game->id);
 			}
 		}
 	}

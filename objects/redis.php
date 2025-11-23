@@ -34,6 +34,8 @@
  * It is used as a key-value store for caching data in the server to reduce DB hits, and to
  * receive events from the server like new messages / votes / game updates, which can be 
  * subscribed to by a node.js process which serves SSE (Server-Sent Events) to clients.
+ * 
+ * TODO: This isn't necessary anymore, would be easier to use the Redis class directly where needed.
  */
 class RedisInterface
 {
@@ -48,71 +50,42 @@ class RedisInterface
         $this->redis->connect($host, $port);
     }
 
-    public function set($key, $value, $expirySeconds = null)
+    public function set($key, $value, $expirySeconds = null): mixed
     {
-        // Memcached serializes values automatically, so do the same thing for Redis manually to get the same behavior:
-        // If this isn't done serialized e.g. territory structures will be converted to string as "Array"
-        $data = serialize($value);
         if ($expirySeconds) {
-            return $this->redis->set($key, $data, $expirySeconds);
+            return $this->redis->set($key, $value, $expirySeconds);
         } else {
-            return $this->redis->set($key, $data);
+            return $this->redis->set($key, $value);
         }
     }
 
-    public function replace($key, $value, $expirySeconds = null)
+    public function get($key): mixed
     {
-        if (!$this->redis->exists($key)) {
-            return false;
-        }
-        return $this->set($key, $value, $expirySeconds);
-        /*
-        $options = ['xx']; // only set if key exists
-
-        if ($expirySeconds) {
-            $options['ex'] = $expirySeconds;
-        }
-
-        return $this->redis->set($key, $value, $options);
-        */
+        return $this->redis->get($key);
     }
 
-    public function get($key)
-    {
-        $data = $this->redis->get($key);
-        if ($data !== false) {
-            // Unserialize but catch any WARNING or error and ignore, so that if
-            // an object definition has changed it will be handled
-            try {
-                set_error_handler(function($errno, $errstr) {
-                    throw new \ErrorException($errstr, 0, $errno);
-                });
-                $result = unserialize($data);
-                restore_error_handler();
-                return $result;
-            } catch (\ErrorException $e) {
-                restore_error_handler();
-                // Handle the unserialize warning here (e.g., log and return null)
-                // error_log("Unserialize failed: " . $e->getMessage());
-                return false;
-            }
-        } else {
-            return false; // Key does not exist
-        }
-    }
-
-    public function append($key, $value)
+    public function append($key, $value): mixed
     {
         return $this->redis->append($key, $value);
     }
 
-    public function delete($key)
+    public function delete($key): mixed
     {
         return $this->redis->del($key);
     }
 
-    public function publish($channel, $message)
+    public function publish($channel, $message): mixed
     {
         return $this->redis->publish($channel, $message);
+    }
+    
+    public function trigger($channel, $event, $message): mixed
+    {
+        return $this->publish(channel: $channel, message: json_encode(['event' => $event, 'data' => $message]));
+    }
+
+    public function flushDB(): mixed
+    {
+        return $this->redis->flushDB();
     }
 }

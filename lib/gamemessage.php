@@ -41,7 +41,7 @@ class libGameMessage
 	 */
 	static public function send($toCountryID, $fromCountryID, $message, $gameID=-1)
 	{
-		global $DB, $Game, $MC;
+		global $DB, $Game, $Redis;
 		if ( ! is_object($Game) )
 		{
 			$Variant=libVariant::loadFromGameID($gameID);
@@ -66,13 +66,13 @@ class libGameMessage
 		$timeSent = time();
 
 		if ($toCountryID == 0) {
-			$MC->set("lastmsgtime_{$Game->id}_0", $timeSent); // spectators
+			$Redis->set("lastmsgtime_{$Game->id}_0", $timeSent); // spectators
 			foreach($Game->Members->ByCountryID as $countryID => $member) {
-				$MC->set("lastmsgtime_{$Game->id}_{$countryID}", $timeSent);
+				$Redis->set("lastmsgtime_{$Game->id}_{$countryID}", $timeSent);
 			}
 		} else {
-			$MC->set("lastmsgtime_{$Game->id}_{$fromCountryID}", $timeSent);
-			$MC->set("lastmsgtime_{$Game->id}_{$toCountryID}", $timeSent);
+			$Redis->set("lastmsgtime_{$Game->id}_{$fromCountryID}", $timeSent);
+			$Redis->set("lastmsgtime_{$Game->id}_{$toCountryID}", $timeSent);
 		}
 
 		$DB->sql_put("INSERT INTO wD_GameMessages
@@ -90,16 +90,15 @@ class libGameMessage
 			libGameMessage::notify($toCountryID, $fromCountryID);
 		}
 
-		require_once('lib/pusher.php');
 		$channel = "private-game" . $Game->id . "-country";
 
 		if ($toCountryID == 0) {
 			foreach($Game->Members->ByCountryID as $countryID => $member) {
-				libRedis::trigger($channel . $countryID, 'message', 'messageSent');
+				$Redis->trigger($channel . $countryID, 'message', 'messageSent');
 			}
 		} else {
 			$channel = $channel . $toCountryID;
-			libRedis::trigger($channel, 'message', 'messageSent');
+			$Redis->trigger($channel, 'message', 'messageSent');
 		}
 
 		return $timeSent;

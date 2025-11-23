@@ -162,10 +162,10 @@ class UserOptions
 	
 	public static function fetchFromCache($id)
 	{
-		global $MC;
-		if( !isset($MC) ) return false;
+		global $Redis;
+		if( !isset($Redis) ) return false;
 
-		$cachedOptions = $MC->get('userOptions_'.$id);
+		$cachedOptions = $Redis->get('userOptions_'.$id);
 		if( $cachedOptions === false ) return false;
 		
 		$cachedOptions = self::unpack($cachedOptions);
@@ -173,12 +173,12 @@ class UserOptions
 	}
 	public function saveToCache()
 	{
-		global $MC;
-		if( isset($MC) )
+		global $Redis;
+		if( isset($Redis) )
 		{
-			// Try to save to memcache
+			// Try to save to redis
 			$packedOptions = self::pack($this->value);
-			$MC->set('userOptions_'.$this->id, $packedOptions, 24*60*60);
+			$Redis->set('userOptions_'.$this->id, $packedOptions, 24*60*60);
 		}
 	}
 	private static function unpack($optionsStr)

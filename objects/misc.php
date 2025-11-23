@@ -41,9 +41,10 @@ class Misc
 	public function __get($name)
 	{
 		// Open was renamed to Joinable due to the verb/noun confusion in translations
-		if( $name == 'GamesJoinable' )
-			$name = 'GamesOpen';
+		if( $name == 'GamesJoinable' ) $name = 'GamesOpen';
 		
+		if( !isset($this->data[$name]) ) return -1;
+
 		return $this->data[$name];
 	}
 	

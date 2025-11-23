@@ -4,7 +4,6 @@ WORKDIR "/application"
 RUN apt-get update; \
     apt-get -y --no-install-recommends install \
         php8.4-gd \ 
-        php8.4-memcached \ 
         php8.4-redis \ 
         php8.4-mysql \ 
         php8.4-xdebug \

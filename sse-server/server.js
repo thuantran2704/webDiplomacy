@@ -73,11 +73,20 @@ const Redis = require('redis');
 const app = express();
 app.use(cors()); // allow all origins by default
 
+// Redis client for writing health check timestamps (needed as subscriber can't write):
+const redisClient = Redis.createClient({
+  socket: { host: redisHost, port: redisPort }
+});
+redisClient.on('error', (err) => {
+  console.error('Redis client error:', err);
+});
+redisClient.connect();
+
 app.get('/events', async (req, res) => {
 
   const auth = req.query.auth;
   if (!auth) {
-    res.status(400).send('Missing auth parameter');
+    res.status(403).send('Missing auth parameter');
     return;
   }
 
@@ -103,11 +112,15 @@ app.get('/events', async (req, res) => {
 
   if( !validateAuth(auth, countryChannel[0]) )
   {
-    res.status(400).send('Invalid auth token for this channel; may be expired.');
+    res.status(403).send('Invalid auth token for this channel; may be expired.');
     return;
   }
 
   // Authenticated and ready
+
+  // Record client connection timestamp
+  console.log(`Client connected. Setting SSE_LASTCLIENTCONNECT in Redis`);
+  await redisClient.set('SSE_LASTCLIENTCONNECT', Date.now().toString());
 
   // Set headers for SSE
   res.writeHead(200, {
@@ -167,3 +180,13 @@ app.get('/events', async (req, res) => {
 app.listen(ssePort, () => {
   console.log(`SSE server listening at http://localhost:${ssePort}/events`);
 });
+
+// Health check: write timestamp to Redis every 10 seconds, so that status.php can see the server is alive
+setInterval(async () => {
+  try {
+    console.log(`Setting SSE_HEALTHCHECK in Redis`);
+    await redisClient.set('SSE_HEALTHCHECK', Date.now().toString());
+  } catch (err) {
+    console.error('Health check write failed:', err);
+  }
+}, 10000);

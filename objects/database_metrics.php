@@ -126,4 +126,3 @@ class MetricsDatabase extends Database {
 		$this->metricsPutTime += ($endTime - $startTime);
 	}
 }
-?>

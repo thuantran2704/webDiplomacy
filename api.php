@@ -30,7 +30,6 @@ require_once('locales/layer.php');
 require_once('objects/database.php');
 require_once('objects/database_metrics.php');
 require_once('objects/redis.php');
-require_once('objects/memcached.php');
 require_once('board/orders/orderinterface.php');
 require_once('api/responses/members_in_cd.php');
 require_once('api/responses/unordered_countries.php');
@@ -523,7 +522,7 @@ class ToggleVote extends ApiEntry {
 		parent::__construct('game/togglevote', 'GET', '', array('gameID','countryID','vote'), true);
 	}
 	public function run($userID, $permissionIsExplicit) {
-		global $DB;
+		global $DB, $Redis;
 
 		$args = $this->getArgs();
 		$gameID = intval($args['gameID']);
@@ -565,8 +564,7 @@ class ToggleVote extends ApiEntry {
 		$DB->sql_put("UPDATE wD_Members SET votes = '".$newVotes."', votesChanged=UNIX_TIMESTAMP() WHERE gameID = ".$gameID." AND userID = ".$userID." AND countryID = ".$countryID);
 		$DB->sql_put("COMMIT");
 
-		require_once('lib/pusher.php');
-		libRedis::trigger("private-game" . $gameID, 'overview', 'set-vote');
+		$Redis->trigger("private-game" . $gameID, 'overview', 'set-vote');
 		
 		return $newVotes;
 	}
@@ -584,7 +582,7 @@ class SetVote extends ApiEntry {
 		parent::__construct('game/setvote', 'JSON', '', array('gameID','countryID','vote','voteOn'), true);
 	}
 	public function run($userID, $permissionIsExplicit) {
-		global $DB;
+		global $DB, $Redis;
 
 		$args = $this->getArgs();
 		$gameID = intval($args['gameID']);
@@ -631,8 +629,7 @@ class SetVote extends ApiEntry {
 		$DB->sql_put("UPDATE wD_Members SET votes = '".$newVotes."', votesChanged=UNIX_TIMESTAMP() WHERE gameID = ".$gameID." AND userID = ".$userID." AND countryID = ".$countryID);
 		$DB->sql_put("COMMIT");
 		
-		require_once('lib/pusher.php');
-		libRedis::trigger("private-game" . $gameID, 'overview', 'set-vote');
+		$Redis->trigger("private-game" . $gameID, 'overview', 'set-vote');
 		
 		return $newVotes;
 	}
@@ -1005,7 +1002,7 @@ class GetGameData extends ApiEntry {
 	 * @throws RequestException
 	 */
 	public function run($userID, $permissionIsExplicit) {
-		global $MC;
+		global $Redis;
 		$args = $this->getArgs();
 		$gameID = $args['gameID'];
 		$countryID = $args['countryID'] ?? null;
@@ -1078,15 +1075,17 @@ class GetGameData extends ApiEntry {
 
 		if($game->variantID && is_numeric($game->variantID)){
             $territoriesCacheKey = "territories_$game->variantID";
-            $cachedTerritories = $MC->get($territoriesCacheKey);
+            $cachedTerritories = $Redis->get($territoriesCacheKey);
             if($cachedTerritories){
+				$cachedTerritories = unserialize($cachedTerritories);
                 $payload['territories'] = $cachedTerritories;
             }else{
                 $territories = InstallCache::terrJSONData($game->variantID);
                 if(!empty($territories)){
                     $payload['territories'] = $territories;
                     $secondsInDay = 86400;
-                    $MC->set($territoriesCacheKey, $territories, $secondsInDay);
+					$json_territories = serialize($territories);
+                    $Redis->set($territoriesCacheKey, $json_territories, $secondsInDay);
                 }
             }
         }
@@ -1213,7 +1212,7 @@ class SetOrders extends ApiEntry {
 	 * @throws ClientForbiddenException
 	 */
 	public function run($userID, $permissionIsExplicit) {
-		global $DB, $MC;
+		global $DB, $Redis;
 		$args = $this->getArgs();
 		$gameID = $args['gameID'];	// checked in getAssociatedGame()
 		$turn = $args['turn'];
@@ -1444,7 +1443,7 @@ class SetOrders extends ApiEntry {
 		// Leave a hint for the game master that this game should be checked:
         if ($orderInterface->orderStatus->Ready && !$previousReadyValue)
 		{
-			$MC->append('processHint',','.$gameID);
+			$Redis->append('processHint',','.$gameID);
 		}
         // Returning current orders
 		return json_encode($currentOrders);
@@ -1539,7 +1538,7 @@ class GetMessages extends ApiEntry {
 		parent::__construct('game/getmessages', 'GET', 'getStateOfAllGames', array('gameID','countryID','sinceTime'), false);
 	}
 	public function run($userID, $permissionIsExplicit) {
-		global $DB, $MC;
+		global $DB, $Redis;
 		$args = $this->getArgs();
 		$countryID = $args['countryID'] ?? 0;
 		$gameID = $args['gameID'];
@@ -1551,7 +1550,7 @@ class GetMessages extends ApiEntry {
 		if (isset($sinceTime)) {
 			// FIXME: gotta be careful that user has permissions or we could leak
 			// the existence of a message by whether we break here!
-			$lastMsgTime = $MC->get($lastMsgKey);
+			$lastMsgTime = $Redis->get($lastMsgKey);
 			// try to shortcut before doing anything expensive
 			// error_log("last message was {$lastMsgTime}, client asked for messages since {$sinceTime}");
 			if ($lastMsgTime && $lastMsgTime <= $sinceTime) {
@@ -1856,7 +1855,7 @@ class Api {
 	 * @throws ServerInternalException
 	 */
 	public function run() {
-		global $MC, $User;
+		global $Redis, $User;
 		// Get route.
 		if (!isset($_GET['route']))
 			throw new RequestException('No route provided.');
@@ -1898,21 +1897,6 @@ class Api {
 		$userID = $apiAuth->getUserID();
 		$result = $apiEntry->run($userID, $permissionIsExplicit); 
 		
-		// if( false && $route == 'players/missing_orders' )
-		// {
-		// 	$result = $MC->get($key);
-		// 	if ( $result )
-		// 	{
-		// 		return $result;
-		// 	}
-		// }
-
-		// Cache result
-		// FIXME: This breaks API Keys
-		// if( $this->route == 'players/missing_orders' && $cacheKey = $apiAuth->getCacheKey() ){
-		// 	$MC->set($cacheKey, $result, 60); // Continually No rush to expire , should be cleaned on all game processes anyway
-		// }
-
 		return $result;
 	}
 }
