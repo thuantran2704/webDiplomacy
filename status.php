@@ -91,7 +91,7 @@ $healthCheckResults[] = array(
 $healthCheckResults[] = array(
 	'label' => 'Bot Game Cleanup',
 	'description' => 'Are the bot game cleanups being done.',
-	'active' => ( time() - $Misc->LastBotGameCleanup ) > 12*60*60,
+	'active' => ( time() - $Misc->LastBotGameCleanup ) > 72*60*60,
 	'text' => libTime::timeLengthText( time() - $Misc->LastBotGameCleanup ) . ' since last cleanup',
 	'importance' => 2
 );
@@ -164,7 +164,7 @@ $healthCheckResults[] = array(
 $healthCheckResults[] = array(
 	'label' => 'Watched games cleanup',
 	'description' => 'Are watched games being cleaned up.',
-	'active' => ( time() - $Misc->LastTidyWatchedGamesUpdate ) > 24*60*60,
+	'active' => ( time() - $Misc->LastTidyWatchedGamesUpdate ) > 3*24*60*60,
 	'text' => libTime::timeLengthText( time() - $Misc->LastTidyWatchedGamesUpdate ) . ' since last update',
 	'importance' => 1
 );
@@ -451,14 +451,14 @@ try
 	}
 	// Collect metrics for PAGE endpoints
 	foreach ($pageEndpoints as $endpoint) {
-		$count = $Redis->get('METRICS_PAGE_' . $endpoint . '_COUNT');
+		$count = intval($Redis->get('METRICS_PAGE_' . $endpoint . '_COUNT'));
 		if ($count && $count > 0) {
 			$metrics['PAGE_' . $endpoint] = array(
 				'count' => $count,
-				'time_ms' => $Redis->get('METRICS_PAGE_' . $endpoint . '_TIME_MS') ?: 0,
-				'db_get' => $Redis->get('METRICS_PAGE_' . $endpoint . '_DB_GET') ?: 0,
-				'db_put' => $Redis->get('METRICS_PAGE_' . $endpoint . '_DB_PUT') ?: 0,
-				'db_time_ms' => $Redis->get('METRICS_PAGE_' . $endpoint . '_DB_TIME_MS') ?: 0,
+				'time_ms' => (float)$Redis->get('METRICS_PAGE_' . $endpoint . '_TIME_MS') ?: 0,
+				'db_get' => (float)$Redis->get('METRICS_PAGE_' . $endpoint . '_DB_GET') ?: 0,
+				'db_put' => (float)$Redis->get('METRICS_PAGE_' . $endpoint . '_DB_PUT') ?: 0,
+				'db_time_ms' => (float)$Redis->get('METRICS_PAGE_' . $endpoint . '_DB_TIME_MS') ?: 0,
 				'bot_count' => null, // PAGE doesn't use API key authentication
 				'type' => 'PAGE'
 			);
@@ -469,7 +469,7 @@ try
 	} else {
 		// Sort by hit count (descending)
 		uasort($metrics, function($a, $b) {
-			return $b['count'] - $a['count'];
+			return intval($b['count']) - intval($a['count']);
 		});
 		// Display the metrics table
 		print '<TABLE class="modTools">';
