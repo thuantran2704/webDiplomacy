@@ -561,12 +561,9 @@ print '<h3>Bot status</h3>';
 print '<table class="hof"><tr><th>Label</th><th>User</th><th>API Calls</th><th>Last API Call</th><th>Multiplex offset*</th><th>Description</th></tr>';
 
 $tabl = $DB->sql_tabl("SELECT u.id, u.username, u.type, u.points, u.identityScore, 
-	a.hits, a.lastHit, a.multiplexOffset, a.description, a.label,
-	p.getStateOfAllGames, p.submitOrdersForUserInCD, p.listGamesWithPlayersInCD, p.getRedactedMessages, p.submitOrdersForDelegatedMembers,
-	p.submitMessages, p.voteDraw, p.playBotsVsHuman, p.playBotVsHuman, p.minimumPhaseLength, p.variantIDs
+	a.hits, a.lastHit, a.multiplexOffset, a.description, a.label
 FROM wD_ApiKeys a 
 INNER JOIN wD_Users u ON u.id = a.userID
-INNER JOIN wD_ApiPermissions p ON u.id = p.userID
 ORDER BY a.label");
 while($row = $DB->tabl_hash($tabl))
 {

@@ -1567,6 +1567,7 @@ class GetMessages extends ApiEntry {
 		}
 
 		$game = $this->getAssociatedGame();
+
 		$gamePhase = $game->phase;
 		$pressType = $game->pressType;
 
@@ -1579,6 +1580,10 @@ class GetMessages extends ApiEntry {
 			throw new RequestException(
 				$this->JSONResponse('A countryID is required.', '', false, ['countryID' => $countryID])
 			);
+
+		// Ensure the country ID matches the user ID making the request:
+		if (!isset($game->Members->ByUserID[$userID]) || $countryID != $game->Members->ByUserID[$userID]->countryID)
+			throw new ClientForbiddenException('A user can only view game messages for the country it controls.');
 
 		$where = "(toCountryID = $countryID OR fromCountryID = $countryID)";
 		$where = "$where OR (toCountryID = 0 OR fromCountryID = 0)";
