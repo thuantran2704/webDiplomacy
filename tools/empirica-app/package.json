@@ -1,0 +1,19 @@
+{
+  "name": "webdip-empirica-app",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@empirica-core/player": "^1.8.0",
+    "@empirica-core/admin": "^1.8.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "vite": "^5.2.0",
+    "@vitejs/plugin-react": "^4.2.1"
+  },
+  "scripts": {
+    "start": "vite",
+    "build": "vite build"
+  }
+}

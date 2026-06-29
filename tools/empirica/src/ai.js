@@ -1,6 +1,7 @@
 // AI provider abstraction: local Ollama or hosted OpenAI-compatible API.
-const SYSTEM = "You are a Diplomacy AI player. Given the board state and recent messages, " +
-  "reply ONLY with JSON: { \"orders\": [...], \"messages\": [{\"to\": <countryID>, \"text\": \"...\"}] }.";
+// Prompt is already fully structured by orders.js buildPrompt(); system role stays minimal.
+const SYSTEM = "You are a Diplomacy AI. Follow the instructions in the user message exactly. " +
+  "Reply ONLY with valid JSON — no markdown, no prose.";
 
 async function ollama(prompt) {
   const res = await fetch(`${process.env.OLLAMA_BASE_URL}/api/chat`, {
@@ -12,11 +13,13 @@ async function ollama(prompt) {
       format: "json",
       messages: [
         { role: "system", content: SYSTEM },
-        { role: "user", content: prompt },
+        { role: "user",   content: prompt },
       ],
     }),
   });
-  return JSON.parse((await res.json()).message.content);
+  const body = await res.json();
+  if (body.error) throw new Error(`Ollama: ${body.error}`);
+  return JSON.parse(body.message.content);
 }
 
 async function hostedApi(prompt) {
@@ -31,11 +34,13 @@ async function hostedApi(prompt) {
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: SYSTEM },
-        { role: "user", content: prompt },
+        { role: "user",   content: prompt },
       ],
     }),
   });
-  return JSON.parse((await res.json()).choices[0].message.content);
+  const body = await res.json();
+  if (body.error) throw new Error(`LLM API: ${JSON.stringify(body.error)}`);
+  return JSON.parse(body.choices[0].message.content);
 }
 
 export function decide(prompt) {
