@@ -1,0 +1,16 @@
+{
+  "name": "webdip-empirica-ai-runner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AI runner + orchestrator for Empirica/webDiplomacy research games (Ollama or hosted LLM).",
+  "scripts": {
+    "runner": "node src/runner.js",
+    "orchestrate": "node src/orchestrator.js",
+    "export": "node src/export.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "mysql2": "^3.11.0"
+  }
+}
