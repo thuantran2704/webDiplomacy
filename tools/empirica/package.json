@@ -9,7 +9,8 @@
     "runner": "node src/runner.js",
     "orchestrate": "node src/orchestrator.js",
     "admin": "node src/admin-ai.js",
-    "export": "node src/export.js"
+    "export": "node src/export.js",
+    "test": "node src/test.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
