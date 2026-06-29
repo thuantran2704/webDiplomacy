@@ -1,0 +1,11 @@
+{
+  "variantID": 1,
+  "teams": {
+    "England": { "seatA": "human", "seatB": "ai", "decisionMaker": "A", "ai": { "provider": "ollama", "model": "llama3" } },
+    "France":  { "seatA": "ai",    "seatB": "ai", "decisionMaker": "A", "ai": { "provider": "api", "model": "gpt-4o-mini" } },
+    "Germany": { "seatA": "human", "seatB": "human", "decisionMaker": "A" }
+  },
+  "maxPlayersPerTeam": 2,
+  "collectMoves": true,
+  "collectDialog": true
+}
