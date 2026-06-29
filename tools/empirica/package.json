@@ -5,8 +5,10 @@
   "type": "module",
   "description": "AI runner + orchestrator for Empirica/webDiplomacy research games (Ollama or hosted LLM).",
   "scripts": {
+    "start": "node start.js",
     "runner": "node src/runner.js",
     "orchestrate": "node src/orchestrator.js",
+    "admin": "node src/admin-ai.js",
     "export": "node src/export.js"
   },
   "dependencies": {
