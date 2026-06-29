@@ -3,7 +3,7 @@
 import "dotenv/config";
 import { readFile } from "node:fs/promises";
 
-const cfg = JSON.parse(await readFile(new URL("../../config/empirica.sample.json", import.meta.url)));
+const cfg = JSON.parse(await readFile(new URL("../../../config/empirica.sample.json", import.meta.url)));
 console.log(`Variant ${cfg.variantID}, max ${cfg.maxPlayersPerTeam}/team`);
 
 for (const [team, t] of Object.entries(cfg.teams)) {
