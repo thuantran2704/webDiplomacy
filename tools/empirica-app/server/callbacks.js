@@ -17,7 +17,7 @@ async function wdApi(route, params = {}) {
 // Called when an Empirica round starts.
 Empirica.onRoundStart(({ round }) => {
   const assignments = round.get("countryAssignments") ?? [];
-  round.set("boardUrl", process.env.VITE_BOARD_URL);
+  round.set("boardUrl", process.env.BOARD_URL);
   console.log(`[empirica] round ${round.id} started — ${assignments.length} seats assigned`);
 });
 
@@ -27,7 +27,7 @@ Empirica.onStageStart(({ stage }) => {
     const seat = player.get("seat");
     if (seat) {
       player.stage.set("boardUrl",
-        `${process.env.VITE_BOARD_URL}?gameID=${seat.gameID}`);
+        `${process.env.BOARD_URL}?gameID=${seat.gameID}`);
     }
   }
 });

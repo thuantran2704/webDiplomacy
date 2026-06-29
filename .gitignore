@@ -38,4 +38,4 @@ botslog.txt
 .env*
 composer.lock
 .vscode/
-.github/
+# .github/ must be tracked — governance files, CI workflows, instructions, skills, prompts

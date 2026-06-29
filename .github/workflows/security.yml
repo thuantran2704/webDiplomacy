@@ -1,0 +1,89 @@
+name: Security
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: "0 3 * * 1"   # every Monday 03:00 UTC
+
+permissions:
+  contents: read
+  security-events: write   # required for CodeQL SARIF upload
+
+jobs:
+  # ── Secret scanning (gitleaks) ────────────────────────────────────────────
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── SAST — CodeQL (JS + PHP) ──────────────────────────────────────────────
+  codeql:
+    name: CodeQL SAST
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        language: [javascript, php]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  # ── npm audit (high+critical) ─────────────────────────────────────────────
+  npm-audit:
+    name: npm audit (high+critical)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/empirica
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Audit
+        run: npm audit --audit-level=high --json | tee audit.json
+        continue-on-error: true
+
+      - name: Upload audit artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-npm-audit
+          path: tools/empirica/audit.json
+
+  # ── .env committed check ──────────────────────────────────────────────────
+  env-file-check:
+    name: Ensure .env not committed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail if any .env (non-example) is tracked
+        run: |
+          if git ls-files | grep -E '(^|/)\.env$'; then
+            echo "ERROR: .env file is committed — remove it immediately."
+            exit 1
+          fi
+          echo "No .env files committed. OK."

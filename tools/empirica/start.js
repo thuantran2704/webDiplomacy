@@ -100,7 +100,7 @@ procs.push(empProc);
 console.log(`
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   webDiplomacy   ${WEBDIP_URL}
-  Empirica app   http://localhost:3000
+  Empirica app   http://localhost:3000  (board: ${process.env.BOARD_URL ?? "http://localhost:43000/board.php"})
   AI runners     ${procs.length - 1} seat(s) active
   Ollama         ${process.env.OLLAMA_BASE_URL ?? "http://localhost:11434"}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

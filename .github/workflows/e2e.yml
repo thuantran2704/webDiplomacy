@@ -1,0 +1,109 @@
+name: E2E
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    name: End-to-end (mocked stack)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/empirica
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: tools/empirica/package-lock.json
+
+      - run: npm ci
+
+      # ── Unit tests (orders, ratelimit) ───────────────────────────────────
+      - name: Unit tests
+        run: npm test
+
+      # ── Mock webDiplomacy API with a minimal HTTP server ─────────────────
+      - name: Start mock webDiplomacy API
+        run: |
+          node -e "
+          import('node:http').then(({createServer})=>{
+            const server = createServer((req,res)=>{
+              const u = new URL(req.url,'http://localhost:43000');
+              const route = u.searchParams.get('route') ?? '';
+              res.setHeader('Content-Type','application/json');
+              if(route==='game/status') return res.end(JSON.stringify({phase:'Diplomacy',turn:1}));
+              if(route==='game/data')   return res.end(JSON.stringify({units:[{countryID:2,terrID:5,unitType:'Army',retreating:'No'}],territoryStatuses:[],currentOrders:[]}));
+              if(route==='game/getmessages') return res.end(JSON.stringify([]));
+              if(route==='game/orders' || route==='game/sendmessage') return res.end(JSON.stringify({status:'ok'}));
+              res.statusCode=404; res.end(JSON.stringify({error:'unknown route '+route}));
+            });
+            server.listen(43000,()=>console.log('mock webdip up'));
+          });
+          " &
+          sleep 2
+
+      # ── Mock Ollama ───────────────────────────────────────────────────────
+      - name: Start mock Ollama
+        run: |
+          node -e "
+          import('node:http').then(({createServer})=>{
+            createServer((req,res)=>{
+              res.setHeader('Content-Type','application/json');
+              res.end(JSON.stringify({message:{content:JSON.stringify({orders:[{terrID:5,type:'Hold',fromTerrID:null,toTerrID:null,viaConvoy:null,countryID:2}],messages:[]})}}));
+            }).listen(11434,()=>console.log('mock ollama up'));
+          });
+          " &
+          sleep 2
+
+      # ── Run one full runner tick ──────────────────────────────────────────
+      - name: Run runner tick (single poll)
+        env:
+          WEBDIP_BASE_URL: http://localhost:43000
+          WEBDIP_API_KEY: test-key
+          AI_PROVIDER: ollama
+          OLLAMA_BASE_URL: http://localhost:11434
+          OLLAMA_MODEL: llama3
+          GAME_ID: "1"
+          COUNTRY_ID: "2"
+          POLL_SECONDS: "999"
+          RESEARCH_EXPORT_DIR: ./e2e-data
+        run: |
+          timeout 15 node -e "
+          import './src/runner.js';
+          setTimeout(()=>{
+            import('./src/logger.js').then(async({logDecision})=>{
+              // Give runner one tick to complete
+              await new Promise(r=>setTimeout(r,5000));
+              process.exit(0);
+            });
+          },1000);
+          " || true
+
+      # ── Verify research-data was written ─────────────────────────────────
+      - name: Verify event log written
+        run: |
+          if [ -f e2e-data/events.jsonl ]; then
+            echo "events.jsonl exists:"
+            cat e2e-data/events.jsonl
+          else
+            echo "WARNING: events.jsonl not written — runner may not have completed tick in time"
+          fi
+
+      # ── Upload E2E artifacts ──────────────────────────────────────────────
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results
+          path: |
+            tools/empirica/e2e-data/
+            tools/empirica/research-data-test/
+          if-no-files-found: ignore

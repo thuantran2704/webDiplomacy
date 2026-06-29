@@ -1,0 +1,97 @@
+name: contract-check
+
+# Fails when code that defines the API/data contract changes without a matching
+# update to .github/Template.md or docs/empirica-integration/API_CONTRACT.md.
+# Escape hatch: put "Contract: unchanged" in the PR body for pure refactors.
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  contract-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine base ref
+        id: base
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "ref=origin/$BASE_REF" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=$BEFORE_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: List changed files
+        id: diff
+        env:
+          BASE_OUT: ${{ steps.base.outputs.ref }}
+        run: |
+          BASE="$BASE_OUT"
+          if ! git rev-parse --verify "$BASE" >/dev/null 2>&1; then BASE="HEAD~1"; fi
+          CHANGED="$(git diff --name-only "$BASE"...HEAD || git diff --name-only HEAD~1 HEAD)"
+          echo "Changed files:"; echo "$CHANGED"
+          { echo "files<<EOF"; echo "$CHANGED"; echo "EOF"; } >> "$GITHUB_OUTPUT"
+
+      - name: Enforce contract doc update on API/schema changes
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          CHANGED: ${{ steps.diff.outputs.files }}
+        run: |
+          # Contract files: api.php routes, AI runner API client + order/rate modules
+          contract_touched() {
+            echo "$CHANGED" | grep -E \
+              '^api\.php$|^tools/empirica/src/webdip\.js$|^tools/empirica/src/orders\.js$|^tools/empirica/src/ratelimit\.js$|^tools/empirica/src/logger\.js$' \
+              >/dev/null 2>&1
+          }
+          # Schema files: DB install SQL
+          schema_touched() {
+            echo "$CHANGED" | grep -E \
+              '^install/FullInstall/fullInstall\.sql$' \
+              >/dev/null 2>&1
+          }
+          # Both contract docs must be updated together
+          template_updated() {
+            echo "$CHANGED" | grep -E \
+              '^\.github/Template\.md$|^docs/empirica-integration/API_CONTRACT\.md$' \
+              >/dev/null 2>&1
+          }
+
+          if echo "$PR_BODY" | grep -qi 'Contract: unchanged'; then
+            echo "::notice::'Contract: unchanged' in PR body — skipping drift check."
+            exit 0
+          fi
+
+          fail=0
+          if (contract_touched || schema_touched) && ! template_updated; then
+            echo "::error::API or schema files changed but .github/Template.md and docs/empirica-integration/API_CONTRACT.md were not updated. Update both in the same commit, or add 'Contract: unchanged' to the PR body for pure refactors."
+            fail=1
+          fi
+          exit $fail
+
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/empirica
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: tools/empirica/package-lock.json
+
+      - run: npm ci
+
+      - name: Run unit tests
+        run: npm test
