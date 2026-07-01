@@ -1,5 +1,9 @@
 # Empirica + webDiplomacy Integration Plan
 
+> ⚠️ **SUPERSEDED** — This file is an early planning document.
+> Current architecture is documented in [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md).
+> Do not use this file as a reference for implementation.
+
 This document plans integrating [Empirica](https://empirica.ly) as the recruitment / onboarding /
 experiment layer in front of webDiplomacy, plus configurable AI players, 2-player teams, and full
 research data capture (every move and every message).

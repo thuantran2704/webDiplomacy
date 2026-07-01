@@ -1,5 +1,8 @@
 # Empirica Integration — Setup
 
+> ⚠️ **SUPERSEDED** — Setup instructions have moved to the root [`README.md`](../../README.md).
+> Do not follow these instructions; run `npm run setup` instead.
+
 ## Prerequisites
 
 - webDiplomacy running (Docker: `docker-compose up -d`, DB from `install/FullInstall/fullInstall.sql`).
