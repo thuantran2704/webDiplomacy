@@ -1,0 +1,10 @@
+{
+  "name": "webdiplomacy-empirica",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "node scripts/setup.js",
+    "start": "node tools/empirica/start.js"
+  }
+}

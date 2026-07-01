@@ -52,26 +52,24 @@ That's it. The start script handles everything else automatically.
 
 ---
 
-## 3. Run the start script
+## 3. Setup & Start
 
-```powershell
-# Windows
-.\start.ps1
-
-# Mac/Linux
-./start.sh
+**First time only:**
+```bash
+npm run setup
 ```
+This will:
+- Copy all config files from their samples
+- Install PHP dependencies via Docker (no local PHP needed)
+- Start all Docker containers
+- Wait for webDiplomacy to be ready
+- Print step-by-step browser instructions for account setup
 
-**On first run the script automatically:**
-- Copies all required config files from their samples
-- Installs PHP dependencies via Docker (no local PHP needed)
-- Starts all Docker containers
-- Waits for webDiplomacy to be ready
-- Prints step-by-step browser instructions for first-time account setup
-
-**On subsequent runs** (after first-time setup is done) it additionally:
-- Spawns AI runner processes per your team config
-- Starts the Empirica participant app
+**Every subsequent run:**
+```bash
+npm start
+```
+This starts Docker, waits for ready, then spawns AI runners + the Empirica participant app.
 
 > **Prerequisite:** Docker Desktop must be open and running ("Engine running" in the tray icon).
 
@@ -79,7 +77,7 @@ That's it. The start script handles everything else automatically.
 
 ## 4. First-time Browser Setup (once only)
 
-After running `.\start.ps1` the first time, it will print these URLs. Complete them in order:
+After running `npm run setup` the first time, it will print these URLs. Complete them in order:
 
 **1. Register** (quick shortcut — skips email):
 ```
@@ -98,7 +96,7 @@ http://localhost:43000/gamemaster.php?gameMasterSecret=
 WEBDIP_API_KEY=<paste here>
 ```
 
-**5. Re-run `.\start.ps1`** — it will now start the full research stack.
+**5. Run `npm start`** — it will now start the full research stack.
 
 > **If using local AI:** run `ollama pull llama3` before step 5 (Ollama must be running).
 
@@ -122,7 +120,7 @@ LLM_MODEL=gpt-4o-mini
 
 ### Start services individually
 
-```powershell
+```bash
 # Docker only (no AI runners / Empirica app)
 docker compose --profile core --profile dev up -d
 
@@ -130,12 +128,10 @@ docker compose --profile core --profile dev up -d
 docker compose down
 
 # One AI runner for a specific seat
-cd tools/empirica
-$env:GAME_ID=1; $env:COUNTRY_ID=2; npm run runner
+cd tools/empirica && GAME_ID=1 COUNTRY_ID=2 npm run runner
 
 # Empirica participant app only
-cd tools/empirica-app
-npm start
+cd tools/empirica-app && npm start
 ```
 
 ---
