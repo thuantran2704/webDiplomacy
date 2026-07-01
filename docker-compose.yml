@@ -171,6 +171,25 @@ services:
 # The webdiplomacy/gunboatbots:2025-06-10 image is a fork with a couple of minor bugfixes, but mainly it contains all the
 # required model data, which were previously hosted on URLs that had gone down. With access to this image only the API 
 # endpoint and API keys are needed to run the bots.
+  data-api:
+    profiles: ["core"]
+    build: ./data-service
+    container_name: webdiplomacy-data-api
+    ports:
+      - "4000:4000"
+    environment:
+      DATA_API_KEY: ${DATA_API_KEY:-changeme-internal-token}
+      DATA_PROVIDER: ${DATA_PROVIDER:-mysql}
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-webdiplomacy}
+      DB_PASS: ${DB_PASS:-mypassword123}
+      DB_NAME: ${DB_NAME:-webdiplomacy}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - mariadb
+      - redis
+
   bots:
     profiles: ["bots"]
     container_name: webdip-gunboatbots

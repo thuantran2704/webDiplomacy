@@ -49,6 +49,7 @@ const configs = [
   { src: "config.sample.php",            dst: "config.php" },
   { src: "sse-server/sample.env",        dst: "sse-server/.env" },
   { src: "tools/empirica/.env.example",  dst: "tools/empirica/.env" },
+  { src: "data-service/.env.example",    dst: "data-service/.env" },
 ];
 
 for (const { src, dst } of configs) {
@@ -84,8 +85,19 @@ try {
   die("docker compose failed. Check output above.");
 }
 
+// ── 4.5. Apply research DB schema ───────────────────────────────────────────
+step("Applying research database schema (rs_* tables)...");
+try {
+  execSync(
+    `docker exec webdiplomacy-db mariadb -u webdiplomacy -pmypassword123 webdiplomacy < ${path.join(ROOT, "install/research/rs_schema.sql")}`,
+    { cwd: ROOT, stdio: "pipe" }
+  );
+  ok("Research schema applied.");
+} catch {
+  warn("Schema apply failed — DB may not be ready yet. Re-run setup if needed.");
+}
+
 // ── 5. Wait for webDiplomacy ─────────────────────────────────────────────────
-const WEBDIP_URL = "http://localhost:43000";
 step(`Waiting for ${WEBDIP_URL} (up to 120s)...`);
 const deadline = Date.now() + 120_000;
 let ready = false;
