@@ -110,7 +110,7 @@ services:
     ports:
       - "43006:43006"
     command: >
-      sh -c "node server.js"
+      sh -c "npm install && node server.js"
     depends_on:
       - "redis"
       
@@ -172,6 +172,7 @@ services:
 # required model data, which were previously hosted on URLs that had gone down. With access to this image only the API 
 # endpoint and API keys are needed to run the bots.
   bots:
+    profiles: ["bots"]
     container_name: webdip-gunboatbots
     image: 'webdiplomacy/gunboatbots:2025-06-09'
     restart: always

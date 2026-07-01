@@ -28,95 +28,31 @@ A research platform that layers **Empirica** (participant recruitment + surveys)
 
 ## 1. Prerequisites
 
-Install all of these before starting.
-
 | Tool | Min Version | Install |
 |---|---|---|
 | **Docker Desktop** | latest | https://www.docker.com/products/docker-desktop |
 | **Node.js** | 18+ | https://nodejs.org |
-| **PHP + Composer** | PHP 8.1+ | https://getcomposer.org |
 | **Git** | any | https://git-scm.com |
 | **Ollama** *(optional — only for local AI)* | latest | https://ollama.com/download |
 
-> **Windows note:** Enable virtualization in BIOS and ensure Docker Desktop is set to WSL2 mode. If npm has symlink issues in WSL, enable Developer Mode in Windows Settings → System → For Developers.
+> PHP and Composer are **not** required locally — the start script installs them inside Docker automatically.
+
+> **Windows:** Enable virtualization in BIOS and make sure Docker Desktop is running (look for "Engine running" in the system tray) before running the script.
 
 ---
 
 ## 2. Install
 
 ```bash
-# Clone the repo
 git clone https://github.com/thuantran2704/webDiplomacy.git
 cd webDiplomacy
-
-# PHP dependencies
-composer update
-
-# Node dependencies — AI runner
-cd tools/empirica
-npm install
-cd ../..
-
-# Node dependencies — Empirica participant app
-cd tools/empirica-app
-npm install
-cd ../..
 ```
+
+That's it. The start script handles everything else automatically.
 
 ---
 
-## 3. Configure
-
-Three `.env` files need to be created. Copy from the examples:
-
-```bash
-# AI runner
-cp tools/empirica/.env.example tools/empirica/.env
-
-# Empirica participant app
-cp tools/empirica-app/.env.example tools/empirica-app/.env
-
-# SSE real-time server
-cp sse-server/sample.env sse-server/.env
-```
-
-### `tools/empirica/.env` — key values to fill in
-
-| Variable | Default | What to change |
-|---|---|---|
-| `WEBDIP_BASE_URL` | `http://localhost:43000` | Leave as-is for local dev |
-| `WEBDIP_API_KEY` | *(empty)* | **Fill in after step 4.4** |
-| `AI_PROVIDER` | `ollama` | `ollama` for local · `api` for OpenAI/etc |
-| `OLLAMA_MODEL` | `llama3` | Any model you've pulled |
-| `LLM_API_KEY` | *(empty)* | Only needed if `AI_PROVIDER=api` |
-| `LLM_MODEL` | `gpt-4o-mini` | Only needed if `AI_PROVIDER=api` |
-| `DB_PASS` | `mypassword123` | Must match `docker-compose.yml` |
-
-> All other values work out-of-the-box for local Docker development.
-
-### `sse-server/.env` — key values
-
-| Variable | Default | What to change |
-|---|---|---|
-| `SSE_SECRET` | *(empty)* | Must match `SSE_SECRET` in `config.php` |
-| `REDIS_HOST` | `redis` | Leave as-is (Docker service name) |
-
-### PHP config
-
-```bash
-cp config.sample.php config.php
-# config.php is gitignored — edit freely
-```
-
-The defaults in `config.sample.php` work for local Docker. The only value you must set is `SSE_SECRET` (copy it from `config.php` into `sse-server/.env`).
-
----
-
-## 4. First-time Setup
-
-> Do this **once** after the stack starts for the first time. Skip on subsequent runs.
-
-### 4.1 Start the core stack
+## 3. Run the start script
 
 ```powershell
 # Windows
@@ -126,80 +62,68 @@ The defaults in `config.sample.php` work for local Docker. The only value you mu
 ./start.sh
 ```
 
-Wait for the message: `webDiplomacy is up`. This may take 2–3 minutes on first boot while the database initialises.
+**On first run the script automatically:**
+- Copies all required config files from their samples
+- Installs PHP dependencies via Docker (no local PHP needed)
+- Starts all Docker containers
+- Waits for webDiplomacy to be ready
+- Prints step-by-step browser instructions for first-time account setup
 
-### 4.2 Register an admin account
+**On subsequent runs** (after first-time setup is done) it additionally:
+- Spawns AI runner processes per your team config
+- Starts the Empirica participant app
 
-Open http://localhost:43001 (Mailhog) in one browser tab — this is your local email inbox.
+> **Prerequisite:** Docker Desktop must be open and running ("Engine running" in the tray icon).
 
-Then register at: http://localhost:43000/register.php
+---
 
-Check Mailhog for the confirmation link and complete registration.
+## 4. First-time Browser Setup (once only)
 
-### 4.3 Grant yourself admin
+After running `.\start.ps1` the first time, it will print these URLs. Complete them in order:
 
-Visit (using `config.sample.php` defaults):
+**1. Register** (quick shortcut — skips email):
+```
+http://localhost:43000/register.php?emailToken=9513e6f6%7C1665482821%7Ctest%40test.com
+```
 
+**2. Become admin:**
 ```
 http://localhost:43000/gamemaster.php?gameMasterSecret=
 ```
 
-*(If you changed `gameMasterSecret` in `config.php`, append it after the `=`.)*
+**3. Generate API key** → go to http://localhost:43000/admincp.php → **API Keys** tab → **Generate new key** → copy the key
 
-### 4.4 Generate an API key
-
-1. Go to http://localhost:43000/admincp.php → **API Keys** tab
-2. Click **Generate new key** for your admin user
-3. Copy the key and paste it into `tools/empirica/.env`:
-   ```
-   WEBDIP_API_KEY=<your key here>
-   ```
-
-### 4.5 If using local AI (Ollama)
-
-```bash
-ollama pull llama3
+**4. Paste the key** into `tools/empirica/.env`:
+```
+WEBDIP_API_KEY=<paste here>
 ```
 
-Pull any other models you want — e.g. `ollama pull mistral`.
+**5. Re-run `.\start.ps1`** — it will now start the full research stack.
 
-### 4.6 Restart
-
-Stop the script (Ctrl+C) and run `.\start.ps1` again. The runner will now authenticate successfully.
+> **If using local AI:** run `ollama pull llama3` before step 5 (Ollama must be running).
 
 ---
 
-## 5. Run Everything
+## 5. Optional configuration
 
-### Full stack (recommended)
+### Switch AI provider
 
-```powershell
-# Windows — game ID 1 (default)
-.\start.ps1
+Edit `tools/empirica/.env`:
+```bash
+# Local Ollama (default)
+AI_PROVIDER=ollama
+OLLAMA_MODEL=llama3
 
-# Windows — specific game
-.\start.ps1 -GameID 3
-
-# Mac/Linux
-./start.sh 1
+# OpenAI-compatible API
+AI_PROVIDER=api
+LLM_API_KEY=sk-...
+LLM_MODEL=gpt-4o-mini
 ```
-
-This single command:
-1. Starts Docker (webDiplomacy + MariaDB + Redis + SSE server)
-2. Waits until http://localhost:43000 responds
-3. Checks Ollama is reachable (if `AI_PROVIDER=ollama`)
-4. Spawns one AI runner process per AI seat in `config/empirica.json`
-5. Starts the Empirica participant app
-
-Press **Ctrl+C** to shut down all processes cleanly.
 
 ### Start services individually
 
 ```powershell
-# Core Docker stack only
-docker compose --profile core up -d
-
-# Add dev tools (Mailhog + phpMyAdmin)
+# Docker only (no AI runners / Empirica app)
 docker compose --profile core --profile dev up -d
 
 # Stop everything
@@ -212,10 +136,6 @@ $env:GAME_ID=1; $env:COUNTRY_ID=2; npm run runner
 # Empirica participant app only
 cd tools/empirica-app
 npm start
-
-# SSE server only
-cd sse-server
-node server.js
 ```
 
 ---

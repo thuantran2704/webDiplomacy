@@ -25,9 +25,9 @@ function log(tag, msg) {
 }
 
 // ── 1. Docker ────────────────────────────────────────────────────────────────
-log("docker", "Starting docker compose --profile core ...");
+log("docker", "Starting docker compose --profile core --profile dev ...");
 try {
-  execSync("docker compose --profile core up -d", { cwd: ROOT, stdio: "inherit" });
+  execSync("docker compose --profile core --profile dev up -d", { cwd: ROOT, stdio: "inherit" });
 } catch {
   console.error("docker compose failed — is Docker Desktop running?");
   process.exit(1);
