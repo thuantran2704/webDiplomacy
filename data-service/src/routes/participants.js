@@ -12,7 +12,11 @@ router.post("/", async (req, res, next) => {
     const result = await db.createParticipant(empiricaPlayerId);
     res.status(201).json(result);
   } catch (err) {
-    if (err.code === "DUPLICATE_PARTICIPANT") return res.status(409).json({ error: err.message, code: err.code });
+    if (err.code === "DUPLICATE_PARTICIPANT") {
+      // Idempotent: return the existing participant's id so callers can proceed
+      // without a separate lookup. err.existingId is set by the adapter.
+      return res.status(200).json({ id: err.existingId });
+    }
     next(err);
   }
 });

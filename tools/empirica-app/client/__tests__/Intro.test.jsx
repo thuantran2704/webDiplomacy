@@ -198,7 +198,7 @@ describe("T3.6 — Data API error", () => {
   });
 });
 
-// ── T3.7 — Returning participant (409 on consent) is allowed through ──────────
+// ── T3.7 — Returning participant (idempotent createParticipant + 409 consent) ─
 describe("T3.7 — Returning participant", () => {
   it("treats 409 on saveConsent as success and advances to Step 3", async () => {
     dataApi.saveConsent.mockResolvedValue({ status: 409, data: { error: "Already consented" } });
@@ -210,5 +210,21 @@ describe("T3.7 — Returning participant", () => {
     // Should still advance to demographics (409 is not thrown as error)
     await screen.findByRole("heading", { name: /demographics/i });
     expect(screen.queryByText(/unable to connect/i)).not.toBeInTheDocument();
+  });
+
+  it("uses existing id when createParticipant returns 200 (already-registered player)", async () => {
+    // Simulate idempotent 200 from participants route (returning player, different status but same shape)
+    dataApi.createParticipant.mockResolvedValue({ status: 200, data: { id: "existing-uuid-456" } });
+    render(<Intro />);
+    await advancePastStep1();
+    await checkAllBoxes();
+    await userEvent.click(screen.getByRole("button", { name: /i agree/i }));
+
+    await waitFor(() =>
+      expect(dataApi.saveConsent).toHaveBeenCalledWith(
+        expect.objectContaining({ participantId: "existing-uuid-456" })
+      )
+    );
+    await screen.findByRole("heading", { name: /demographics/i });
   });
 });

@@ -143,12 +143,17 @@ All responses are JSON. Errors use the envelope in §8.
 
 #### `POST /api/v1/participants`
 Register a new participant (called when Empirica player is created).
+This endpoint is **idempotent** — if the `empiricaPlayerId` already exists the
+existing participant's `id` is returned with HTTP 200 (not 409).
 ```jsonc
 // Request body
 { "empiricaPlayerId": "string" }
 
-// Response 201
+// Response 201 — created fresh
 { "id": "uuid" }
+
+// Response 200 — participant already existed (returning player)
+{ "id": "uuid" }        // same shape, callers can always use data.id
 ```
 
 #### `GET /api/v1/participants/:id`
