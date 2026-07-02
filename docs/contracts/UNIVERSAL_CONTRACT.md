@@ -135,9 +135,31 @@ All require `Authorization: Bearer <WEBDIP_API_KEY>`.
 ## 4. Data API
 
 Base: `http://localhost:4000` (set by `DATA_API_URL` env var)
-Auth: `Authorization: Bearer <DATA_API_KEY>`
+Auth: `Authorization: Bearer <DATA_API_KEY>` (except SSE — see §4.0)
 Content-Type: `application/json` for all requests.
 All responses are JSON. Errors use the envelope in §8.
+
+### 4.0 Server-Sent Events
+
+#### `GET /api/v1/sse?gameId=N&key=TOKEN`
+SSE stream delivering real-time game events to the Empirica client.
+`EventSource` (browser API) cannot send custom headers — auth is via the `key`
+query parameter (same value as `DATA_API_KEY`).
+
+```
+// Query params
+gameId  int    (required)  — Data API internal game id (rs_games.id)
+key     string (required)  — DATA_API_KEY value
+
+// Stream format
+Content-Type: text/event-stream
+data: {"event":"role-changed","data":{...}}
+
+// Each "data:" line is a JSON object matching §5 SSE event shapes.
+```
+
+`useSSE(gameId, onEvent)` in the Empirica client wraps this endpoint with
+automatic reconnection (exponential backoff, max 30 s).
 
 ### 4.1 Participants
 

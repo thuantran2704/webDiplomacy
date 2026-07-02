@@ -8,6 +8,7 @@ import { router as gamesRouter }        from "./routes/games.js";
 import { router as teamsRouter }        from "./routes/teams.js";
 import { router as eventsRouter }       from "./routes/events.js";
 import { router as messagesRouter }     from "./routes/messages.js";
+import { router as sseRouter }          from "./routes/sse.js";
 
 const app  = express();
 const PORT = Number(process.env.DATA_API_PORT) || 4000;
@@ -17,6 +18,10 @@ app.use(express.json({ limit: "1mb" }));
 
 // ── Public endpoints ──────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => res.json({ ok: true }));
+
+// SSE uses query-param key auth (EventSource can't send headers) — must be
+// mounted BEFORE the general requireAuth middleware.
+app.use("/api/v1/sse", sseRouter);
 
 // ── Protected routes ──────────────────────────────────────────────────────────
 app.use("/api/v1", requireAuth);

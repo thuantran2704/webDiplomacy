@@ -27,3 +27,34 @@ globalThis.triggerScrolledToBottom = () => {
   MockIntersectionObserver._instances = [];
   // will be called after observe() is set up
 };
+
+// jsdom does not implement EventSource — provide a controllable mock.
+class MockEventSource {
+  constructor(url) {
+    this.url       = url;
+    this.readyState = 1; // OPEN
+    MockEventSource._instances.push(this);
+  }
+  close() { this.readyState = 2; }
+
+  // Static helpers for tests
+  static _instances = [];
+  static reset() { MockEventSource._instances = []; }
+
+  /** Fire a message event on all open EventSource instances. */
+  static fireMessage(payload) {
+    MockEventSource._instances.forEach((es) => {
+      if (es.onmessage) es.onmessage({ data: JSON.stringify(payload) });
+    });
+  }
+
+  /** Simulate a connection error on all open instances. */
+  static fireError() {
+    MockEventSource._instances.forEach((es) => {
+      if (es.onerror) es.onerror(new Event("error"));
+    });
+  }
+}
+
+global.EventSource = MockEventSource;
+
