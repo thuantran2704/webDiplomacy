@@ -111,7 +111,7 @@ All require `Authorization: Bearer <WEBDIP_API_KEY>`.
       "intraChatEnabled": true,
       "members": [
         {
-          "participantID": "uuid",
+          "participantId": "uuid",
           "role": "controller",    // "controller" | "spectator" | "bot"
           "joinedAt": "ISO8601"
         }
@@ -206,6 +206,19 @@ Record legal consent. Called immediately after Intro form submission.
 
 // Response 201
 { "id": int }
+```
+
+#### `GET /api/v1/teams`
+Returns all teams (with members) for a game. Used by the `team/roster` PHP route.
+```jsonc
+// Query params
+// gameId  int  (required)
+
+// Response 200
+{
+  "gameId": int,
+  "teams": [ /* Team[] — same shape as GET /api/v1/teams/:teamId */ ]
+}
 ```
 
 #### `GET /api/v1/teams/:teamId`
@@ -444,3 +457,4 @@ Standard HTTP status codes:
 | 2026-07-01 | Initial unified contract — supersedes `docs/empirica-integration/API_CONTRACT.md` |
 | 2026-07-01 | Added Data API (§4), team routes (§3), SSE shapes (§5), event schema reference |
 | 2026-07-01 | Added `ai.advisor` event type to EVENT_SCHEMA (bot advisor mode suggestion) |
+| 2026-07-01 | self-heal: fixed §3.1 `participantID`→`participantId`; added `GET /api/v1/teams` to §4.4 |
