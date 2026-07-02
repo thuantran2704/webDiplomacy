@@ -61,7 +61,7 @@ class AssignTeamController extends ApiEntry {
             'gameId'    => $gameID,
             'teamId'    => $team['id'],
             'countryId' => $countryID,
-            'payload'   => $result,
+            'payload'   => array_merge($result, ['changedBy' => 'admin']),
         ]);
 
         return json_encode([

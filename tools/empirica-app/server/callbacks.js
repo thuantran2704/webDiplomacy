@@ -117,7 +117,12 @@ Empirica.onGameStart(async ({ game }) => {
   await dataApi("POST", "/api/v1/events", {
     type:    "game.created",
     gameId:  rsGameId,
-    payload: { empiricaGameId: game.id },
+    payload: {
+      empiricaGameId: game.id,
+      webdipGameId:   game.get("webdipGameID") ?? null,
+      variantId:      config.variantID ?? 1,
+      configSnapshot: config,
+    },
   });
 
   // Empirica requires at least one round and stage

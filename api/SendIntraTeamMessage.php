@@ -56,7 +56,14 @@ class SendIntraTeamMessage extends ApiEntry {
             'gameId'    => $gameID,
             'teamId'    => $team['id'],
             'countryId' => $fromCountryID,
-            'payload'   => ['scope' => 'intra', 'messageId' => $messageId],
+            'payload'   => [
+                'scope'           => 'intra',
+                'toTeamId'        => $team['id'],
+                'toCountryId'     => null,
+                'text'            => $text,
+                'turn'            => null,
+                'webdipMessageId' => null,
+            ],
         ]);
 
         return json_encode(['id' => $messageId]);

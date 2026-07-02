@@ -159,6 +159,7 @@ function cleanRoute($route) {
 function dataApiCall(string $method, string $path, ?array $body = null): array {
 	$baseUrl = Config::$dataApiUrl ?? 'http://data-api:4000';
 	$apiKey  = (!empty(Config::$dataApiKey)) ? Config::$dataApiKey : (getenv('DATA_API_KEY') ?: '');
+	if (!$apiKey) throw new ServerInternalException('DATA_API_KEY is not configured.');
 
 	$ch = curl_init($baseUrl . $path);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
