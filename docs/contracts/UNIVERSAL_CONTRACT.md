@@ -45,29 +45,38 @@ GET params are query strings. POST/JSON params are JSON body.
 
 | Route | Method | Required params | Response shape | Notes |
 |---|---|---|---|---|
-| `game/status` | GET | `gameID`, `countryID` | `{ phase, turn, ... }` | Primary poll; `phase` ∈ `Diplomacy\|Retreats\|Builds\|Pre-game\|Finished` |
-| `game/data` | GET | `gameID`, `countryID` | See §2.1 | Full board state for AI prompt |
-| `game/members` | GET | `gameID` | `{ members: Member[] }` | Seat/country list |
-| `game/overview` | GET | `gameID` | game config object | Game settings |
-| `game/getmessages` | GET | `gameID`, `countryID`, `sinceTime` | `Message[]` | Dialog since unix timestamp |
-| `game/sendmessage` | JSON POST | `gameID`, `countryID`, `toCountryID`, `message` | `{ messages: [] }` | Sends press message |
-| `game/orders` | JSON POST | `gameID`, `turn`, `phase`, `countryID`, `orders[]`, `ready` | `Order[]` | Submits moves |
+| `game/status` | GET | `gameID`, `countryID` | `{ gameID, countryID, phase, turn, ... }` | Flat — no envelope. `phase` ∈ `Diplomacy\|Retreats\|Builds\|Pre-game\|Finished` |
+| `game/data` | GET | `gameID`, `countryID` | `{ msg, success, referenceCode, data: {…} }` | Wrapped — `webdip.js::getData()` unwraps to `.data`; see §2.1 |
+| `game/members` | GET | `gameID` | `{ msg, success, referenceCode, data: { members: Member[] } }` | Wrapped — `data.members` has the seat list |
+| `game/overview` | GET | `gameID` | `{ msg, success, referenceCode, data: { phase, turn, name, … } }` | Wrapped — game config + member list in `data` |
+| `game/getmessages` | GET | `gameID`, `countryID`, `sinceTime` | `{ msg, success, referenceCode, data: { messages: Message[], time: int, newMessagesFrom: int[] } }` | Wrapped — `webdip.js::getMessages()` unwraps to `data.messages` array |
+| `game/sendmessage` | JSON POST | `gameID`, `countryID`, `toCountryID`, `message` | `{ messages: [{ fromCountryID, message, timeSent, toCountryID, turn }] }` | Flat — returns the just-sent message |
+| `game/orders` | JSON POST | `gameID`, `turn`, `phase`, `countryID`, `orders[]`, `ready` | `Order[]` | Flat — returns current orders after save |
+| `game/join` | POST | `gameID` | `{ msg, success, referenceCode }` | Flat — joins authenticated user to a game seat; used by TASK 2 |
+| `sse/authentication` | JSON POST | `gameID`, `channel_name` | `{ msg, success, referenceCode, data: { auth: "md5_timestamp" } }` | Token for SSE server; pass as `auth` param when subscribing |
 
 DB tables written: `wD_Orders`, `wD_GameMessages`. These are **not** modified by this project.
 
 ### 2.1 `game/data` response
+Route uses `JSONResponse()` — full wire format:
 ```jsonc
 {
-  "units": [{ "unitType": "Army|Fleet", "terrID": int, "countryID": int, "retreating": "Yes|No" }],
-  "territoryStatuses": [{ "terrID": int, "countryID": int }],
-  "territories": [...],
-  "currentOrders": [ /* Order[] */ ],
-  "contextVars": { "context": {}, "contextKey": "" },
-  "turn": int,
-  "phase": "Diplomacy|Retreats|Builds|Pre-game|Finished",
-  "isSandboxMode": bool
+  "msg": "Successfully retrieved game data.",
+  "success": true,
+  "referenceCode": "GGD-s-001",
+  "data": {
+    "units":             [{ "unitType": "Army|Fleet", "terrID": int, "countryID": int, "retreating": "Yes|No" }],
+    "territoryStatuses": [{ "terrID": int, "countryID": int }],
+    "territories":       [...],
+    "currentOrders":     [ /* Order[] */ ],
+    "contextVars":       { "context": {}, "contextKey": "" },
+    "turn":              int,
+    "phase":             "Diplomacy|Retreats|Builds|Pre-game|Finished",
+    "isSandboxMode":     bool
+  }
 }
 ```
+`webdip.js::getData()` unwraps to `.data` before returning — callers see the inner object directly.
 
 ### 2.2 Order object
 Sent in `game/orders` → `orders[]`. Validated by `tools/empirica/src/orders.js::validateOrders()`.
@@ -458,3 +467,4 @@ Standard HTTP status codes:
 | 2026-07-01 | Added Data API (§4), team routes (§3), SSE shapes (§5), event schema reference |
 | 2026-07-01 | Added `ai.advisor` event type to EVENT_SCHEMA (bot advisor mode suggestion) |
 | 2026-07-01 | self-heal: fixed §3.1 `participantID`→`participantId`; added `GET /api/v1/teams` to §4.4 |
+| 2026-07-01 | audit: fixed §2 response shapes (JSONResponse wrapper on game/data, game/getmessages); added sse/authentication, game/join; fixed webdip.js to unwrap .data |
