@@ -1,11 +1,29 @@
 {
   "variantID": 1,
+  "consentFormVersion": "1.0",
+  "globalIntraTeamChat": true,
+  "phaseDurationMinutes": 30,
   "teams": {
-    "England": { "seatA": "human", "seatB": "ai", "decisionMaker": "A", "ai": { "provider": "ollama", "model": "llama3" } },
-    "France":  { "seatA": "ai",    "seatB": "ai", "decisionMaker": "A", "ai": { "provider": "api", "model": "gpt-4o-mini" } },
-    "Germany": { "seatA": "human", "seatB": "human", "decisionMaker": "A" }
+    "England": {
+      "maxHumans": 3,
+      "bots": 0,
+      "intraTeamChat": true,
+      "controller": "auto"
+    },
+    "France": {
+      "maxHumans": 2,
+      "bots": 1,
+      "intraTeamChat": false,
+      "controller": "auto"
+    },
+    "Germany": {
+      "maxHumans": 2,
+      "bots": 0,
+      "intraTeamChat": true,
+      "controller": "auto"
+    }
   },
-  "maxPlayersPerTeam": 2,
   "collectMoves": true,
   "collectDialog": true
 }
+

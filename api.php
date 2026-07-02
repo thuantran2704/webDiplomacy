@@ -153,6 +153,35 @@ function cleanRoute($route) {
 }
 
 /**
+ * Call the Data API. Returns ['status' => int, 'body' => array].
+ * Falls back to DATA_API_KEY env var if Config::$dataApiKey is empty.
+ */
+function dataApiCall(string $method, string $path, ?array $body = null): array {
+	$baseUrl = Config::$dataApiUrl ?? 'http://data-api:4000';
+	$apiKey  = (!empty(Config::$dataApiKey)) ? Config::$dataApiKey : (getenv('DATA_API_KEY') ?: '');
+
+	$ch = curl_init($baseUrl . $path);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+	curl_setopt($ch, CURLOPT_HTTPHEADER, [
+		'Authorization: Bearer ' . $apiKey,
+		'Content-Type: application/json',
+	]);
+	if ($method === 'POST') {
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+	} elseif ($method === 'PATCH') {
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
+		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+	}
+	$result   = curl_exec($ch);
+	$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	curl_close($ch);
+	if ($result === false) throw new ServerInternalException('Data API unreachable.');
+	return ['status' => $httpCode, 'body' => json_decode($result, true) ?? []];
+}
+
+/**
  * Class to manage an API entry.
  */
 abstract class ApiEntry {
@@ -1906,6 +1935,10 @@ class Api {
 	}
 }
 
+require_once('api/GetTeamRoster.php');
+require_once('api/SendIntraTeamMessage.php');
+require_once('api/AssignTeamController.php');
+
 if( isset(Config::$botsLogFile) && Config::$botsLogFile )
 {
 	file_put_contents(Config::$botsLogFile,
@@ -1951,6 +1984,10 @@ try {
 	$api->load(new SandboxCopy());
 	$api->load(new SandboxMoveTurnBack());
 	$api->load(new SandboxDelete());
+
+	$api->load(new GetTeamRoster());
+	$api->load(new SendIntraTeamMessage());
+	$api->load(new AssignTeamController());
 
 	// Track API call metrics
 	$apiStartTime = microtime(true);

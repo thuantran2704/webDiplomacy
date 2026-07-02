@@ -125,5 +125,55 @@ test("reset clears old turn counters", () => {
 });
 
 // ── Summary ───────────────────────────────────────────────────────────────────
+console.log("\nT2.8 — team seat assignment logic");
+
+// Simulates the onGameStart player-to-team assignment logic from callbacks.js
+function assignPlayers(players, teamCfgs) {
+  const countryNames = Object.keys(teamCfgs);
+  const counts = {};
+  const results = [];
+  for (const player of players) {
+    let assigned = false;
+    for (const name of countryNames) {
+      const max = teamCfgs[name].maxHumans ?? 2;
+      const count = counts[name] ?? 0;
+      if (count >= max) continue;
+      const role = count === 0 ? "controller" : "spectator";
+      results.push({ player, countryName: name, role });
+      counts[name] = count + 1;
+      assigned = true;
+      break;
+    }
+    if (!assigned) results.push({ player, countryName: null, role: null });
+  }
+  return results;
+}
+
+const cfg = { England: { maxHumans: 2 }, France: { maxHumans: 1 } };
+
+test("first player on a team → controller", () => {
+  const [r] = assignPlayers(["A"], cfg);
+  assert.equal(r.role, "controller");
+  assert.equal(r.countryName, "England");
+});
+
+test("second player on same team → spectator", () => {
+  const [, r] = assignPlayers(["A", "B"], cfg);
+  assert.equal(r.role, "spectator");
+  assert.equal(r.countryName, "England");
+});
+
+test("third player overflows to next team", () => {
+  const [,, r] = assignPlayers(["A", "B", "C"], cfg);
+  assert.equal(r.countryName, "France");
+  assert.equal(r.role, "controller");
+});
+
+test("fourth player cannot be assigned (all teams full)", () => {
+  const results = assignPlayers(["A", "B", "C", "D"], cfg);
+  assert.equal(results[3].countryName, null);
+  assert.equal(results[3].role, null);
+});
+
 console.log(`\n${passed} passed, ${failed} failed\n`);
 if (failed > 0) process.exit(1);

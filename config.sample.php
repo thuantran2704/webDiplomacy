@@ -234,6 +234,19 @@ class Config
 	 *
 	 * @var array
 	 */
+	/**
+	 * Internal Data API URL (used by PHP team routes to call the research data service).
+	 * Inside Docker this is the service name; outside Docker use http://localhost:4000.
+	 * @var string
+	 */
+	public static $dataApiUrl = 'http://data-api:4000';
+
+	/**
+	 * Bearer token for the internal Data API. Auto-injected by scripts/setup.js.
+	 * @var string
+	 */
+	public static $dataApiKey = '';
+
 	public static $apiConfig = array(
 		/* Whether the API is enabled or not */
 		"enabled" => true,

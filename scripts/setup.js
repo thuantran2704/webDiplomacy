@@ -115,7 +115,8 @@ if (needsSecrets) {
     .replace("public static $secret='';",           `public static $secret='${secret}';`)
     .replace("public static $gameMasterSecret='';", `public static $gameMasterSecret='${gmSec}';`)
     .replace("public static $jsonSecret='';",       `public static $jsonSecret='${jsonSec}';`)
-    .replace("public static $sseSecret = '';",      `public static $sseSecret = '${sseSec}';`);
+    .replace("public static $sseSecret = '';",      `public static $sseSecret = '${sseSec}';`)
+    .replace("public static $dataApiKey = '';",     `public static $dataApiKey = '${dataApiKey}';`);
   writeFileSync(configPath, configContent);
   ok("config.php — all 5 secrets generated and set.");
 
